@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}项目管理 - 任务管理系统{% endblock %}
+
+{% block page %}projects{% endblock %}
+
+{% block content %}
+<h1>📁 项目管理</h1>
+
+<!-- 操作栏 -->
+<div class="action-bar">
+    <input type="search" 
+           placeholder="搜索项目..."
+           hx-get="/api/html/projects"
+           hx-trigger="input changed delay:300ms"
+           hx-target="#project-list"
+           name="keyword"
+           style="flex:1;"/>
+    
+    <button hx-get="/projects/create" 
+            hx-target="#modal-container"
+            hx-swap="innerHTML">
+        + 创建项目
+    </button>
+</div>
+
+<!-- 项目列表 -->
+<div id="project-list"
+     hx-get="/api/html/projects"
+     hx-trigger="load">
+    <div class="loading">加载中...</div>
+</div>
+
+<!-- 模态框容器 -->
+<div id="modal-container"></div>
+{% endblock %}

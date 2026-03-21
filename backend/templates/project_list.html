@@ -1,0 +1,25 @@
+{% for project in projects %}
+<div class="task-card" id="project-{{ project.id }}">
+    <div style="display:flex; justify-content:space-between; align-items:start;">
+        <div style="flex:1;">
+            <h3 style="margin:0.5rem 0;">📁 {{ project.name }}</h3>
+            
+            {% if project.description %}
+            <p style="color:var(--muted-color); margin:0.5rem 0;">{{ project.description }}</p>
+            {% endif %}
+            
+            <div style="display:flex; gap:1rem; margin-top:1rem; font-size:0.875rem; color:var(--muted-color);">
+                <span>📊 {{ project.task_count or 0 }} 个任务</span>
+                <span>🕐 {{ project.created_at.strftime('%Y-%m-%d') }}</span>
+            </div>
+        </div>
+        
+        <div style="display:flex; gap:0.5rem;">
+            <button onclick="viewProject({{ project.id }})" style="padding:0.5rem;">查看</button>
+            <button onclick="editProject({{ project.id }})" style="padding:0.5rem;">编辑</button>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="loading">暂无项目</div>
+{% endfor %}

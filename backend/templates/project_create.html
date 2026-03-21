@@ -1,0 +1,33 @@
+<article style="max-width:600px;">
+    <header>
+        <h3>📁 创建项目</h3>
+        <button onclick="closeModal()" style="float:right;">×</button>
+    </header>
+    
+    <form hx-post="/api/projects"
+          hx-target="#project-list"
+          hx-swap="afterbegin"
+          hx-on::after-request="closeModal()">
+        
+        <label>
+            项目名称 *
+            <input type="text" name="name" required placeholder="输入项目名称">
+        </label>
+        
+        <label>
+            项目描述
+            <textarea name="description" rows="4" placeholder="项目描述..."></textarea>
+        </label>
+        
+        <footer>
+            <button type="submit">创建项目</button>
+            <button type="button" onclick="closeModal()" style="background:var(--muted-color);">取消</button>
+        </footer>
+    </form>
+</article>
+
+<script>
+function closeModal() {
+    document.getElementById('modal-container').innerHTML = '';
+}
+</script>

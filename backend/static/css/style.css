@@ -1,0 +1,142 @@
+/* 任务管理系统 - 自定义样式 */
+
+:root {
+    --primary-color: #2196F3;
+    --success-color: #4CAF50;
+    --warning-color: #FF9800;
+    --danger-color: #F44336;
+}
+
+body {
+    min-height: 100vh;
+}
+
+/* 侧边栏 */
+.sidebar {
+    width: 250px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    padding: 1rem;
+    border-right: 1px solid var(--muted-border-color);
+}
+
+.main-content {
+    margin-left: 270px;
+    padding: 2rem;
+}
+
+.nav-link {
+    display: block;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--muted-color);
+    transition: all 0.2s;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* 任务卡片 */
+.task-card {
+    border: 1px solid var(--muted-border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: box-shadow 0.2s;
+}
+
+.task-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* 状态标签 */
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.status-pending { background: #FFE082; color: #5D4037; }
+.status-agent_working { background: #90CAF9; color: #0D47A1; }
+.status-pending_review { background: #FFCC80; color: #E65100; }
+.status-reviewing { background: #CE93D8; color: #4A148C; }
+.status-done { background: #A5D6A7; color: #1B5E20; }
+.status-cancelled { background: #EF9A9A; color: #B71C1C; }
+
+/* 优先级标签 */
+.priority-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.priority-1 { background: #F44336; color: white; }  /* Critical */
+.priority-2 { background: #FF9800; color: white; }  /* High */
+.priority-3 { background: #2196F3; color: white; }  /* Medium */
+.priority-4 { background: #9E9E9E; color: white; }  /* Low */
+
+/* 统计卡片 */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--card-background-color);
+    border: 1px solid var(--muted-border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.stat-label {
+    color: var(--muted-color);
+    margin-top: 0.5rem;
+}
+
+/* 加载状态 */
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted-color);
+}
+
+/* 操作栏 */
+.action-bar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        position: relative;
+        border-right: none;
+        border-bottom: 1px solid var(--muted-border-color);
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+}

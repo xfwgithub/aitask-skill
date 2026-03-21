@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}任务列表 - 任务管理系统{% endblock %}
+
+{% block page %}tasks{% endblock %}
+
+{% block content %}
+<h1>✅ 任务列表</h1>
+
+<!-- 操作栏 -->
+<div class="action-bar">
+    <!-- 搜索框 -->
+    <input type="search" 
+           placeholder="搜索任务..."
+           hx-get="/api/html/tasks"
+           hx-trigger="input changed delay:300ms"
+           hx-target="#task-list"
+           name="keyword"
+           style="flex:1;"/>
+    
+    <!-- 筛选器 -->
+    <select name="status"
+            hx-get="/api/html/tasks"
+            hx-trigger="change"
+            hx-target="#task-list">
+        <option value="">所有状态</option>
+        <option value="pending">待处理</option>
+        <option value="agent_working">Agent 执行中</option>
+        <option value="pending_review">待审查</option>
+        <option value="reviewing">审查中</option>
+        <option value="done">已完成</option>
+        <option value="cancelled">已取消</option>
+    </select>
+    
+    <!-- 创建任务按钮 -->
+    <button hx-get="/tasks/create" 
+            hx-target="#modal-container"
+            hx-swap="innerHTML">
+        + 创建任务
+    </button>
+</div>
+
+<!-- 任务列表 -->
+<div id="task-list"
+     hx-get="/api/html/tasks"
+     hx-trigger="load">
+    <div class="loading">加载中...</div>
+</div>
+
+<!-- 模态框容器 -->
+<div id="modal-container"></div>
+{% endblock %}
