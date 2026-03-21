@@ -13,17 +13,30 @@
 - ✅ **本地存储** - SQLite 数据库，安全可靠
 - ✅ **Agent 支持** - 可指定 Agent 类型自动执行
 - ✅ **RESTful API** - 完整的 API 接口
+- ✅ **零依赖版本** - Go 语言实现，无需运行时
 
 ## 技术栈
 
-- **FastAPI** - 高性能 Web 框架
+- **FastAPI** - 高性能 Web 框架（Python 版本）
 - **SQLAlchemy** - ORM 框架
 - **SQLite** - 轻量级数据库
 - **Pydantic** - 数据验证
+- **Go** - 零依赖版本（推荐）
 
 ## 📦 安装
 
-### 方式 1：使用 skills CLI（推荐）
+### 方式 0：Go 零依赖版本（推荐）
+
+```bash
+# 下载预编译二进制
+curl -L https://github.com/xfwgithub/aitask-skill/releases/latest/download/task-skill-darwin-arm64 -o task-skill
+chmod +x task-skill
+
+# 使用
+echo '{"function": "create_task", "parameters": {"title": "我的任务"}}' | ./task-skill
+```
+
+### 方式 1：使用 skills CLI
 
 ```bash
 npx skills add xfwgithub/aitask-skill
