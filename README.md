@@ -36,11 +36,27 @@ cd task-management
 # 安装依赖
 go mod download
 
-# 启动服务器
+# 启动服务器（默认端口 8080）
 go run .
+
+# 或使用自定义端口
+TASK_SKILL_PORT=3000 go run .
 
 # 打开浏览器访问
 # http://localhost:8080
+```
+
+### 配置端口
+
+**方式 1：环境变量**
+```bash
+export TASK_SKILL_PORT=3000
+go run .
+```
+
+**方式 2：启动脚本**
+```bash
+TASK_SKILL_PORT=3000 ./start.sh
 ```
 
 ### 命令行使用

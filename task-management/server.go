@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,8 +18,21 @@ import (
 
 var database *Database
 
+// ServerConfig 服务器配置
+type ServerConfig struct {
+	Port int
+}
+
 // initServer 初始化并启动 Web 服务器
 func initServer() {
+	// 获取端口配置（环境变量或默认值）
+	port := 8080
+	if portEnv := os.Getenv("TASK_SKILL_PORT"); portEnv != "" {
+		if p, err := strconv.Atoi(portEnv); err == nil {
+			port = p
+		}
+	}
+
 	// 初始化数据库
 	var err error
 	database, err = NewDatabase("tasks.db")
@@ -65,8 +79,10 @@ func initServer() {
 	e.GET("/api/stats", getStatsAPI)
 
 	// 启动服务器
-	fmt.Println("服务器启动在 http://localhost:8080")
-	e.Logger.Fatal(e.Start(":8080"))
+	addr := fmt.Sprintf(":%d", port)
+	fmt.Printf("服务器启动在 http://localhost:%d\n", port)
+	fmt.Println("提示：可通过环境变量 TASK_SKILL_PORT 配置端口")
+	e.Logger.Fatal(e.Start(addr))
 }
 
 // 模板渲染器
