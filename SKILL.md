@@ -9,18 +9,14 @@ keywords:
   - productivity
   - ai-skill
   - agent
+  - go
 engines:
-  python: ">=3.11"
-dependencies:
-  - fastapi>=0.109.0
-  - sqlalchemy>=2.0.25
-  - pydantic>=2.11.0
-  - aiosqlite>=0.19.0
+  go: ">=1.21"
 ---
 
 # Task Management Skill 📋
 
-让 AI 助手帮你高效管理任务的标准化技能包！
+零依赖、高性能的任务管理技能！
 
 ## 触发条件
 
@@ -40,34 +36,41 @@ dependencies:
 - `title` (string, 必需): 任务标题
 - `description` (string, 可选): 任务描述
 - `priority` (int, 可选): 优先级 1-4（1=Critical/2=High/3=Medium/4=Low），默认 3
-- `project_name` (string, 可选): 所属项目名称
+- `tags` ([]string, 可选): 标签列表
 - `assignee_name` (string, 可选): 负责人姓名
 - `agent_type` (string, 可选): Agent 类型（writer/reviewer/researcher）
 - `agent_model` (string, 可选): Agent 模型名称
-- `tags` (list, 可选): 标签列表
-- `due_date` (string, 可选): 截止日期（YYYY-MM-DD 格式）
 
 **示例**:
-```python
-create_task(title="审查文档", priority=2, description="检查完整性")
+```json
+{
+  "function": "create_task",
+  "parameters": {
+    "title": "审查文档",
+    "priority": 2,
+    "description": "检查完整性"
+  }
+}
 ```
 
 ### query_tasks
 查询任务列表
 
 **参数**:
-- `status` (string, 可选): 状态筛选（pending/agent_working/pending_review/reviewing/done/cancelled）
+- `status` (string, 可选): 状态筛选（pending/agent_working/done/cancelled）
 - `priority` (int, 可选): 优先级筛选
-- `project_name` (string, 可选): 项目名称筛选
 - `assignee_name` (string, 可选): 负责人筛选
-- `agent_type` (string, 可选): Agent 类型筛选
 - `keyword` (string, 可选): 关键词搜索
 - `limit` (int, 可选): 返回数量限制，默认 20
 
 **示例**:
-```python
-query_tasks(status="pending")
-query_tasks(assignee_name="张三", limit=10)
+```json
+{
+  "function": "query_tasks",
+  "parameters": {
+    "status": "pending"
+  }
+}
 ```
 
 ### update_task_status
@@ -75,11 +78,17 @@ query_tasks(assignee_name="张三", limit=10)
 
 **参数**:
 - `task_uuid` (string, 必需): 任务 UUID
-- `new_status` (string, 必需): 新状态（pending/agent_working/pending_review/reviewing/done/cancelled）
+- `new_status` (string, 必需): 新状态（pending/agent_working/done/cancelled）
 
 **示例**:
-```python
-update_task_status(task_uuid="abc123", new_status="done")
+```json
+{
+  "function": "update_task_status",
+  "parameters": {
+    "task_uuid": "abc-123",
+    "new_status": "done"
+  }
+}
 ```
 
 ### get_task_detail
@@ -89,8 +98,27 @@ update_task_status(task_uuid="abc123", new_status="done")
 - `task_uuid` (string, 必需): 任务 UUID
 
 **示例**:
-```python
-get_task_detail(task_uuid="abc123")
+```json
+{
+  "function": "get_task_detail",
+  "parameters": {
+    "task_uuid": "abc-123"
+  }
+}
+```
+
+### get_dashboard_stats
+获取仪表盘统计
+
+**返回**:
+```json
+{
+  "total": 100,
+  "pending": 20,
+  "agent_working": 5,
+  "done": 70,
+  "cancelled": 5
+}
 ```
 
 ## 执行规则
@@ -98,25 +126,21 @@ get_task_detail(task_uuid="abc123")
 ### 规则 1：创建任务流程
 1. 当用户要创建任务时，必须确认标题
 2. 如果用户没说优先级，默认设为 3（中等）
-3. 如果用户没说截止日期，不设置截止日期
-4. 创建成功后，显示任务 UUID 和基本状态
+3. 创建成功后，显示任务 UUID 和基本状态
 
 ### 规则 2：查询任务流程
 1. 默认显示最近 20 条任务
 2. 如果结果超过 10 条，询问用户是否需要筛选
-3. 支持按状态、负责人、优先级、项目筛选
-4. 查询结果按创建时间倒序排列
+3. 支持按状态、负责人、优先级筛选
 
 ### 规则 3：更新状态流程
 1. 更新前确认任务存在
 2. 验证状态流转的合法性
 3. 如果是标记为"完成"，询问是否需要总结
-4. 如果是"取消"，询问取消原因（可选）
 
 ### 规则 4：错误处理
 1. 如果任务不存在，明确提示用户
 2. 如果参数错误，给出修正建议
-3. 如果数据库错误，重试一次后提示用户
 
 ## 使用示例
 
@@ -151,91 +175,24 @@ AI：正在更新任务状态...
 
 ## 安装说明
 
-### 方式 1：使用 skills CLI（推荐）
+### 方式 1：下载预编译二进制（推荐）
+```bash
+# macOS (Apple Silicon)
+curl -L https://github.com/xfwgithub/aitask-skill/releases/latest/download/task-skill-darwin-arm64 -o task-skill
+chmod +x task-skill
+```
+
+### 方式 2：从源码编译
+```bash
+git clone https://github.com/xfwgithub/aitask-skill.git
+cd aitask-skill/go-skill
+go build -o task-skill
+```
+
+### 方式 3：使用 skills CLI
 ```bash
 npx skills add xfwgithub/aitask-skill
 ```
-
-### 方式 2：手动安装
-```bash
-git clone https://github.com/xfwgithub/aitask-skill.git
-cd aitask-skill
-pip install -r src/requirements.txt
-```
-
-### 方式 3：复制文件
-```bash
-# 复制到 Claude Skills 目录
-cp -r . ~/.claude/skills/aitask-skill/
-
-# 或复制到 Cursor Rules 目录
-cp -r . ~/.cursor/rules/aitask-skill/
-```
-
-## 快速开始
-
-### 1. 初始化数据库
-```bash
-cd src
-python start.py --init-db
-```
-
-### 2. 使用自然语言
-直接对 AI 助手说：
-```
-"帮我创建一个紧急任务，明天要完成项目评审"
-"查询我所有待处理的任务"
-"把任务'审查文档'标记为已完成"
-"统计一下本周完成了多少任务"
-```
-
-### 3. 使用 Python 调用
-```python
-from src.skills.task_skill import TaskManagerSkill
-
-# 初始化
-skill = TaskManagerSkill()
-await skill.initialize()
-
-# 创建任务
-task = await skill.create_task(
-    title="审查第一卷第 10 章",
-    description="检查时间线、人物、情节连贯性",
-    priority=2,
-    assignee_name="张三"
-)
-
-# 查询任务
-tasks = await skill.query_tasks(status="pending")
-print(f"待处理任务：{len(tasks['tasks'])} 个")
-
-# 更新状态
-await skill.update_task_status(task["uuid"], "done")
-```
-
-## 配置说明
-
-### 环境变量
-创建 `backend/.env` 文件：
-```bash
-# 数据库配置
-DATABASE_URL=sqlite:///./data/tasks.db
-
-# 服务器配置
-SERVER_PORT=8000
-SERVER_HOST=0.0.0.0
-```
-
-### 数据库位置
-默认：`backend/data/tasks.db`
-
-## 依赖
-
-- Python >= 3.11
-- FastAPI >= 0.109.0
-- SQLAlchemy >= 2.0.25
-- Pydantic >= 2.11.0
-- aiosqlite >= 0.19.0
 
 ## 许可证
 
@@ -243,5 +200,4 @@ MIT License
 
 ## 支持
 
-- GitHub Issues: https://github.com/your-username/aitask-skill/issues
-- 邮箱：your.email@example.com
+- GitHub Issues: https://github.com/xfwgithub/aitask-skill/issues

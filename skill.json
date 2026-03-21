@@ -1,7 +1,7 @@
 {
   "name": "task-management",
   "version": "1.0.0",
-  "description": "AI 助手任务管理技能 - 创建、查询、更新任务的标准化技能包",
+  "description": "AI 助手任务管理技能 - 零依赖、高性能的任务管理技能",
   "author": "xfwgithub",
   "license": "MIT",
   "repository": "https://github.com/xfwgithub/aitask-skill",
@@ -11,32 +11,21 @@
     "task-management",
     "productivity",
     "ai-skill",
-    "agent"
+    "agent",
+    "go"
   ],
   "engines": {
-    "python": ">=3.11"
-  },
-  "dependencies": {
-    "fastapi": ">=0.109.0",
-    "sqlalchemy": ">=2.0.25",
-    "pydantic": ">=2.11.0",
-    "pydantic-settings": ">=2.5.2",
-    "aiosqlite": ">=0.19.0"
+    "go": ">=1.21"
   },
   "files": [
     "SKILL.md",
     "skill.json",
-    "src/skills/",
-    "src/models/",
-    "src/db/",
-    "src/schemas/",
-    "src/core/",
-    "src/requirements.txt",
+    "go-skill/",
     "README.md"
   ],
   "scripts": {
-    "init-db": "cd src && python start.py --init-db",
-    "start": "cd src && python main.py",
-    "test": "cd src && pytest"
+    "build": "cd go-skill && go build -o task-skill",
+    "test": "cd go-skill && go test -v ./...",
+    "clean": "cd go-skill && go clean"
   }
 }
