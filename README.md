@@ -26,13 +26,13 @@
 ### 方式 1：使用 skills CLI（推荐）
 
 ```bash
-npx skills add your-username/aitask-skill
+npx skills add xfwgithub/aitask-skill
 ```
 
 ### 方式 2：手动安装
 
 ```bash
-git clone https://github.com/your-username/aitask-skill.git
+git clone https://github.com/xfwgithub/aitask-skill.git
 cd aitask-skill
 pip install -r src/requirements.txt
 ```

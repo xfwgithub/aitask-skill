@@ -2,7 +2,7 @@
 name: "task-management"
 description: "AI 任务管理技能。当用户需要创建、查询、更新、删除任务或获取任务统计时触发此技能。"
 version: "1.0.0"
-author: "Your Name <your.email@example.com>"
+author: "xfwgithub"
 license: "MIT"
 keywords:
   - task-management
@@ -153,12 +153,12 @@ AI：正在更新任务状态...
 
 ### 方式 1：使用 skills CLI（推荐）
 ```bash
-npx skills add your-username/aitask-skill
+npx skills add xfwgithub/aitask-skill
 ```
 
 ### 方式 2：手动安装
 ```bash
-git clone https://github.com/your-username/aitask-skill.git
+git clone https://github.com/xfwgithub/aitask-skill.git
 cd aitask-skill
 pip install -r src/requirements.txt
 ```
