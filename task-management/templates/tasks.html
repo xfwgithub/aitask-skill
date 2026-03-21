@@ -1,0 +1,71 @@
+{{define "content"}}
+<div class="tasks-page">
+    <div class="page-header">
+        <h1>任务列表</h1>
+        <button class="btn btn-primary" onclick="showCreateModal()">+ 新建任务</button>
+    </div>
+
+    <div class="filters">
+        <input type="text" id="search" placeholder="搜索任务..." class="form-control" 
+               hx-get="/api/tasks" hx-trigger="keyup changed delay:300ms" hx-target="#taskList">
+        <select id="filterStatus" class="form-control" 
+                hx-get="/api/tasks" hx-trigger="change" hx-target="#taskList">
+            <option value="">全部状态</option>
+            <option value="pending">待处理</option>
+            <option value="agent_working">进行中</option>
+            <option value="done">已完成</option>
+            <option value="cancelled">已取消</option>
+        </select>
+    </div>
+
+    <div id="taskList">加载中...</div>
+</div>
+
+<script>
+function loadTasks() {
+    const status = document.getElementById('filterStatus').value;
+    const keyword = document.getElementById('search').value;
+    
+    let url = '/api/tasks?';
+    if (status) url += `status=${status}&`;
+    if (keyword) url += `keyword=${encodeURIComponent(keyword)}&`;
+    
+    fetch(url)
+        .then(r => r.json())
+        .then(data => {
+            const container = document.getElementById('taskList');
+            if (!data.tasks || data.tasks.length === 0) {
+                container.innerHTML = '<p class="empty-state">暂无任务</p>';
+                return;
+            }
+            
+            container.innerHTML = '<table class="table"><thead><tr><th>标题</th><th>状态</th><th>优先级</th><th>负责人</th><th>标签</th><th>操作</th></tr></thead><tbody>' +
+                data.tasks.map(task => `
+                    <tr>
+                        <td><a href="/tasks/${task.uuid}">${escapeHtml(task.title)}</a></td>
+                        <td><span class="badge badge-${task.status}">${task.status}</span></td>
+                        <td>P${task.priority}</td>
+                        <td>${task.assignee_name || '-'}</td>
+                        <td>${task.tags ? task.tags.split(',').map(t => `<span class="badge badge-tag">${t}</span>`).join('') : '-'}</td>
+                        <td>
+                            <button class="btn btn-sm" onclick="updateStatus('${task.uuid}', 'done')">完成</button>
+                            <button class="btn btn-sm" onclick="updateStatus('${task.uuid}', 'cancelled')">取消</button>
+                        </td>
+                    </tr>
+                `).join('') +
+                '</tbody></table>';
+        });
+}
+
+function updateStatus(uuid, status) {
+    fetch(`/api/tasks/${uuid}/status`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({new_status: status})
+    }).then(() => loadTasks());
+}
+
+// 初始加载
+loadTasks();
+</script>
+{{end}}

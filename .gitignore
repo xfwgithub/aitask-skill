@@ -1,32 +1,12 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+# Go
+*.exe
+*.test
+*.out
+task-management/task-skill
+task-management/tasks.db
 
-# Virtual environments
-.venv
-venv/
-ENV/
-env/
-.venv/
+# Database
+*.db
 
 # IDE
 .vscode/
@@ -36,37 +16,5 @@ env/
 *~
 .DS_Store
 
-# Environment variables
-.env
-.env.local
-.env.*.local
-
-# Database
-*.db
-*.db-journal
-src/data/*.db
-backend/data/*.db
-
 # Logs
 *.log
-logs/
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-
-# Temporary files
-tmp/
-temp/
-*.tmp
-
-# Frontend (not part of skill)
-backend/templates/
-backend/static/
-
-# Go
-go-skill/task-skill
-go-skill/*.exe
-go-skill/*.test

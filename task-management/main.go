@@ -216,8 +216,8 @@ func (s *Skill) GetDashboardStats() map[string]interface{} {
 	}
 }
 
-// Run 运行技能（读取 stdin，输出到 stdout）
-func (s *Skill) Run() {
+// RunCLI 运行 CLI 模式
+func (s *Skill) RunCLI() {
 	// 读取输入
 	var input map[string]interface{}
 	decoder := json.NewDecoder(os.Stdin)
@@ -225,20 +225,20 @@ func (s *Skill) Run() {
 		fmt.Printf(`{"error": "无效的输入: %v"}`, err)
 		return
 	}
-	
+
 	// 获取函数名
 	funcName, ok := input["function"].(string)
 	if !ok {
 		fmt.Printf(`{"error": "缺少 function 字段"}`)
 		return
 	}
-	
+
 	// 获取参数
 	params := input["parameters"]
-	
+
 	// 调用对应的函数
 	var result map[string]interface{}
-	
+
 	switch funcName {
 	case "create_task":
 		var p CreateTaskInput
@@ -248,40 +248,52 @@ func (s *Skill) Run() {
 			p.Priority = 3 // 默认中等优先级
 		}
 		result = s.CreateTask(p)
-		
+
 	case "query_tasks":
 		var p QueryTasksInput
 		jsonBytes, _ := json.Marshal(params)
 		json.Unmarshal(jsonBytes, &p)
 		result = s.QueryTasks(p)
-		
+
 	case "update_task_status":
 		var p UpdateTaskStatusInput
 		jsonBytes, _ := json.Marshal(params)
 		json.Unmarshal(jsonBytes, &p)
 		result = s.UpdateTaskStatus(p)
-		
+
 	case "get_task_detail":
 		var p GetTaskDetailInput
 		jsonBytes, _ := json.Marshal(params)
 		json.Unmarshal(jsonBytes, &p)
 		result = s.GetTaskDetail(p)
-		
+
 	case "get_dashboard_stats":
 		result = s.GetDashboardStats()
-		
+
 	default:
 		result = map[string]interface{}{
 			"error": fmt.Sprintf("未知的函数: %s", funcName),
 		}
 	}
-	
+
 	// 输出结果
 	output, _ := json.MarshalIndent(result, "", "  ")
 	fmt.Println(string(output))
 }
 
 func main() {
-	skill := NewSkill()
-	skill.Run()
+	// 检查命令行参数
+	if len(os.Args) > 1 && os.Args[1] == "--server" {
+		// 启动 Web 服务器
+		startServer()
+	} else {
+		// CLI 模式
+		skill := NewSkill()
+		skill.RunCLI()
+	}
+}
+
+// startServer 启动 Web 服务器
+func startServer() {
+	initServer()
 }

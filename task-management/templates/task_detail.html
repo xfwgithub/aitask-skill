@@ -1,0 +1,58 @@
+{{define "content"}}
+<div class="task-detail">
+    <div class="page-header">
+        <h1>{{.Title}}</h1>
+        <a href="/tasks" class="btn btn-secondary">返回列表</a>
+    </div>
+
+    <div class="task-info">
+        <div class="info-row">
+            <strong>状态:</strong>
+            <span class="badge badge-{{.Status}}">{{.Status}}</span>
+        </div>
+        <div class="info-row">
+            <strong>优先级:</strong> P{{.Priority}}
+        </div>
+        <div class="info-row">
+            <strong>负责人:</strong> {{if .Assignee}}{{.Assignee}}{{else}}-{{end}}
+        </div>
+        <div class="info-row">
+            <strong>标签:</strong> {{if .Tags}}{{.Tags}}{{else}}-{{end}}
+        </div>
+        <div class="info-row">
+            <strong>创建时间:</strong> {{formatDate .CreatedAt}}
+        </div>
+        <div class="info-row">
+            <strong>更新时间:</strong> {{formatDate .UpdatedAt}}
+        </div>
+    </div>
+
+    {{if .Description}}
+    <div class="task-description">
+        <h3>描述</h3>
+        <p>{{.Description}}</p>
+    </div>
+    {{end}}
+
+    <div class="task-actions">
+        <h3>操作</h3>
+        <button class="btn btn-primary" onclick="updateStatus('{{.UUID}}', 'done')">标记为完成</button>
+        <button class="btn btn-warning" onclick="updateStatus('{{.UUID}}', 'agent_working')">标记为进行中</button>
+        <button class="btn btn-danger" onclick="updateStatus('{{.UUID}}', 'cancelled')">取消任务</button>
+    </div>
+</div>
+
+<script>
+function updateStatus(uuid, status) {
+    if (!confirm(`确定要将任务标记为"${status}"吗？`)) return;
+    
+    fetch(`/api/tasks/${uuid}/status`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({new_status: status})
+    }).then(() => {
+        window.location.reload();
+    });
+}
+</script>
+{{end}}
