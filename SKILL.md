@@ -1,31 +1,34 @@
 ---
-name: "task-management"
-description: "AI 任务管理技能。当用户需要创建、查询、更新、删除任务或获取任务统计时触发此技能。"
-version: "1.0.0"
-author: "xfwgithub"
-license: "MIT"
-keywords:
-  - task-management
-  - productivity
-  - ai-skill
-  - agent
-  - go
-engines:
-  go: ">=1.21"
+name: task-management
+description: 零依赖、高性能的任务管理技能。当用户需要创建、查询、更新、删除任务或获取任务统计时使用此技能。
 ---
 
 # Task Management Skill 📋
 
-零依赖、高性能的任务管理技能！
+零依赖、高性能的任务管理技能，使用 Go 语言实现。
 
 ## 触发条件
 
 当用户提到以下关键词或意图时触发此技能：
-- 创建任务："创建任务"、"新建任务"、"添加一个任务"、"帮我记个事"
-- 查询任务："查看任务"、"查询任务"、"我的任务"、"有什么任务"
-- 更新任务："更新任务"、"完成任务"、"取消任务"、"修改任务"
-- 任务统计："任务统计"、"任务概况"、"有多少任务"
-- 任务详情："任务详情"、"查看某个任务"
+
+### 创建任务
+- "创建任务"、"新建任务"、"添加一个任务"、"帮我记个事"
+- "我要做一个..."、"记得做..."、"提醒我..."
+
+### 查询任务
+- "查看任务"、"查询任务"、"我的任务"、"有什么任务"
+- "待处理的任务"、"未完成的任务"
+
+### 更新任务
+- "更新任务"、"完成任务"、"取消任务"、"修改任务"
+- "标记为已完成"、"删除任务"
+
+### 任务统计
+- "任务统计"、"任务概况"、"有多少任务"
+- "完成情况如何"
+
+### 任务详情
+- "任务详情"、"查看某个任务"、"任务信息"
 
 ## 工具函数
 
@@ -110,6 +113,13 @@ engines:
 ### get_dashboard_stats
 获取仪表盘统计
 
+**示例**:
+```json
+{
+  "function": "get_dashboard_stats"
+}
+```
+
 **返回**:
 ```json
 {
@@ -187,11 +197,6 @@ chmod +x task-skill
 git clone https://github.com/xfwgithub/aitask-skill.git
 cd aitask-skill/go-skill
 go build -o task-skill
-```
-
-### 方式 3：使用 skills CLI
-```bash
-npx skills add xfwgithub/aitask-skill
 ```
 
 ## 许可证
