@@ -11,6 +11,11 @@ keywords:
   - agent
 engines:
   python: ">=3.11"
+dependencies:
+  - fastapi>=0.109.0
+  - sqlalchemy>=2.0.25
+  - pydantic>=2.11.0
+  - aiosqlite>=0.19.0
 ---
 
 # Task Management Skill 📋
@@ -155,7 +160,7 @@ npx skills add your-username/aitask-skill
 ```bash
 git clone https://github.com/your-username/aitask-skill.git
 cd aitask-skill
-pip install -r backend/requirements.txt
+pip install -r src/requirements.txt
 ```
 
 ### 方式 3：复制文件
@@ -171,7 +176,7 @@ cp -r . ~/.cursor/rules/aitask-skill/
 
 ### 1. 初始化数据库
 ```bash
-cd backend
+cd src
 python start.py --init-db
 ```
 
@@ -186,7 +191,7 @@ python start.py --init-db
 
 ### 3. 使用 Python 调用
 ```python
-from backend.app.skills.task_skill import TaskManagerSkill
+from src.skills.task_skill import TaskManagerSkill
 
 # 初始化
 skill = TaskManagerSkill()

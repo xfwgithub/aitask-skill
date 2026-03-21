@@ -34,7 +34,7 @@ npx skills add your-username/aitask-skill
 ```bash
 git clone https://github.com/your-username/aitask-skill.git
 cd aitask-skill
-pip install -r backend/requirements.txt
+pip install -r src/requirements.txt
 ```
 
 ### 方式 3：复制文件
@@ -52,13 +52,13 @@ cp -r . ~/.cursor/rules/aitask-skill/
 ### 1. 安装依赖
 
 ```bash
-cd backend
+cd src
 pip install -r requirements.txt
 ```
 
 ### 2. 配置服务（可选）
 
-编辑 `backend/.env` 文件：
+编辑 `src/.env` 文件：
 
 ```bash
 # 服务器配置
@@ -69,7 +69,7 @@ SERVER_HOST=0.0.0.0     # 监听地址
 ### 3. 初始化数据库
 
 ```bash
-cd backend
+cd src
 python start.py --init-db
 ```
 
@@ -77,13 +77,13 @@ python start.py --init-db
 
 ```bash
 # 启动服务（最常用）
-python start.py
+python src/main.py
 
 # 开发模式（热重载）
-python start.py --reload
+python src/main.py --reload
 
 # 自定义端口
-python start.py --port 8080
+python src/main.py --port 8080
 ```
 
 ### 5. 访问服务
@@ -117,7 +117,7 @@ python start.py --port 8080
 ### Python API 调用
 
 ```python
-from backend.app.skills.task_skill import TaskManagerSkill
+from src.skills.task_skill import TaskManagerSkill
 
 # 初始化
 skill = TaskManagerSkill()

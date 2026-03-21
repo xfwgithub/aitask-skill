@@ -44,6 +44,7 @@ env/
 # Database
 *.db
 *.db-journal
+src/data/*.db
 backend/data/*.db
 
 # Logs
@@ -56,10 +57,11 @@ logs/
 htmlcov/
 .tox/
 
-# Skill package
-skill-package/
-
 # Temporary files
 tmp/
 temp/
 *.tmp
+
+# Frontend (not part of skill)
+backend/templates/
+backend/static/

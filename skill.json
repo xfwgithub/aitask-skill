@@ -26,15 +26,17 @@
   "files": [
     "SKILL.md",
     "skill.json",
-    "backend/app/skills/",
-    "backend/app/models/",
-    "backend/app/db/",
-    "backend/requirements.txt",
+    "src/skills/",
+    "src/models/",
+    "src/db/",
+    "src/schemas/",
+    "src/core/",
+    "src/requirements.txt",
     "README.md"
   ],
   "scripts": {
-    "init-db": "cd backend && python start.py --init-db",
-    "start": "cd backend && python main.py",
-    "test": "cd backend && pytest"
+    "init-db": "cd src && python start.py --init-db",
+    "start": "cd src && python main.py",
+    "test": "cd src && pytest"
   }
 }
