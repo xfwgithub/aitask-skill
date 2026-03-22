@@ -113,19 +113,33 @@ platform: macOS (Apple Silicon)
 ```
 
 ### review_task
-审查任务（agent_review → human_review 或 done）
+提交人工审查（agent_review → human_review）
 
 **参数**:
 - `task_uuid` (string, 必需): 任务 UUID
-- `approved` (bool, 必需): 是否通过审查
 
 **示例**:
 ```json
 {
   "function": "review_task",
   "parameters": {
-    "task_uuid": "abc-123",
-    "approved": true
+    "task_uuid": "abc-123"
+  }
+}
+```
+
+### approve_task
+人工审核通过（human_review → done）
+
+**参数**:
+- `task_uuid` (string, 必需): 任务 UUID
+
+**示例**:
+```json
+{
+  "function": "approve_task",
+  "parameters": {
+    "task_uuid": "abc-123"
   }
 }
 ```

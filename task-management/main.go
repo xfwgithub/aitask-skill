@@ -288,21 +288,27 @@ func (s *Skill) CompleteTask(input CompleteTaskInput) map[string]interface{} {
 
 // ReviewTaskInput 审查任务输入
 type ReviewTaskInput struct {
-	TaskUUID  string `json:"task_uuid"`
-	Approved  bool   `json:"approved"`
+	TaskUUID string `json:"task_uuid"`
 }
 
-// ReviewTask 审查任务（agent_review → human_review 或 done）
+// ReviewTask 审查任务（agent_review → human_review）
 func (s *Skill) ReviewTask(input ReviewTaskInput) map[string]interface{} {
-	var newStatus string
-	if input.Approved {
-		newStatus = "done"
-	} else {
-		newStatus = "pending"
-	}
 	return s.UpdateTaskStatus(UpdateTaskStatusInput{
 		TaskUUID:  input.TaskUUID,
-		NewStatus: newStatus,
+		NewStatus: "human_review",
+	})
+}
+
+// ApproveTaskInput 人工审核输入
+type ApproveTaskInput struct {
+	TaskUUID string `json:"task_uuid"`
+}
+
+// ApproveTask 人工审核通过（human_review → done）
+func (s *Skill) ApproveTask(input ApproveTaskInput) map[string]interface{} {
+	return s.UpdateTaskStatus(UpdateTaskStatusInput{
+		TaskUUID:  input.TaskUUID,
+		NewStatus: "done",
 	})
 }
 
@@ -490,6 +496,12 @@ func (s *Skill) RunCLI() {
 		jsonBytes, _ := json.Marshal(params)
 		json.Unmarshal(jsonBytes, &p)
 		result = s.ReviewTask(p)
+
+	case "approve_task":
+		var p ApproveTaskInput
+		jsonBytes, _ := json.Marshal(params)
+		json.Unmarshal(jsonBytes, &p)
+		result = s.ApproveTask(p)
 
 	case "cancel_task":
 		var p CancelTaskInput
