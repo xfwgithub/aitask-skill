@@ -51,9 +51,24 @@ jobs:
       - name: Create Release Assets
         run: |
           cd task-management
+          
+          # 创建 Intel 版本完整包
+          mkdir -p task-skill-darwin-amd64-v${{ github.ref_name }}
+          cp task-skill-darwin-amd64 task-skill-darwin-amd64-v${{ github.ref_name }}/task-skill
+          cp -r templates static SKILL.md task-skill-darwin-amd64-v${{ github.ref_name }}/
+          zip -r task-skill-darwin-amd64-v${{ github.ref_name }}.zip task-skill-darwin-amd64-v${{ github.ref_name }}/
+          
+          # 创建 ARM64 版本完整包
+          mkdir -p task-skill-darwin-arm64-v${{ github.ref_name }}
+          cp task-skill-darwin-arm64 task-skill-darwin-arm64-v${{ github.ref_name }}/task-skill
+          cp -r templates static SKILL.md task-skill-darwin-arm64-v${{ github.ref_name }}/
+          zip -r task-skill-darwin-arm64-v${{ github.ref_name }}.zip task-skill-darwin-arm64-v${{ github.ref_name }}/
+          
           # 创建校验和
           shasum -a 256 task-skill-darwin-amd64 > task-skill-darwin-amd64.sha256
           shasum -a 256 task-skill-darwin-arm64 > task-skill-darwin-arm64.sha256
+          shasum -a 256 task-skill-darwin-amd64-v${{ github.ref_name }}.zip > task-skill-darwin-amd64-v${{ github.ref_name }}.zip.sha256
+          shasum -a 256 task-skill-darwin-arm64-v${{ github.ref_name }}.zip > task-skill-darwin-arm64-v${{ github.ref_name }}.zip.sha256
       
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -63,12 +78,27 @@ jobs:
             task-management/task-skill-darwin-arm64
             task-management/task-skill-darwin-amd64.sha256
             task-management/task-skill-darwin-arm64.sha256
+            task-management/task-skill-darwin-amd64-v${{ github.ref_name }}.zip
+            task-management/task-skill-darwin-arm64-v${{ github.ref_name }}.zip
+            task-management/task-skill-darwin-amd64-v${{ github.ref_name }}.zip.sha256
+            task-management/task-skill-darwin-arm64-v${{ github.ref_name }}.zip.sha256
           name: Release ${{ github.ref_name }}
           body: |
             ## 更新内容
             - 完善任务状态系统
             - 添加审核意见功能
             - 优化 Web 界面
+            - 添加项目字段支持
+            - 添加任务编辑功能
+            
+            ## 下载说明
+            
+            **推荐使用完整包（包含 Web 界面资源）**：
+            - `task-skill-darwin-amd64-v${{ github.ref_name }}.zip` - Intel Mac
+            - `task-skill-darwin-arm64-v${{ github.ref_name }}.zip` - Apple Silicon Mac
+            
+            **纯二进制文件**（仅命令行使用）：
+            - `task-skill-darwin-amd64` / `task-skill-darwin-arm64`
           draft: false
           prerelease: true
           fail_on_unmatched_files: false
