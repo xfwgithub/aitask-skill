@@ -5,7 +5,7 @@
 ## 平台支持
 
 - **macOS** (Apple Silicon - ARM64) ✅
-- **版本**: 0.2.3
+- **版本**: 0.2.7
 
 ## 快速开始
 
@@ -16,11 +16,11 @@
 # 从 GitHub Release 下载完整包（包含 Web 界面资源）
 # https://github.com/xfwgithub/aitask-skill/releases
 
-# 下载 zip 文件：task-skill-v0.2.4.zip
+# 下载 zip 文件：task-skill-v0.2.7.zip
 
 # 解压到技能目录
-unzip task-skill-v0.2.4.zip -d ~/.agents/skills/
-mv ~/.agents/skills/task-skill-v0.2.4 ~/.agents/skills/task-management
+unzip task-skill-v0.2.7.zip -d ~/.agents/skills/
+mv ~/.agents/skills/task-skill-v0.2.7 ~/.agents/skills/task-management
 
 # 或者从源码安装（开发用）
 cp -r ~/github/aitask-skill/task-management ~/.agents/skills/task-management

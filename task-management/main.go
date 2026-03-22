@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+var version = "0.2.7"
+
 // Task 任务结构
 type Task struct {
 	ID            int64   `json:"id"`
@@ -381,6 +383,13 @@ func (s *Skill) GetTaskDetail(input GetTaskDetailInput) map[string]interface{} {
 	}
 }
 
+// GetVersion 获取版本号
+func (s *Skill) GetVersion() map[string]interface{} {
+	return map[string]interface{}{
+		"version": version,
+	}
+}
+
 // GetDashboardStats 获取仪表盘统计
 func (s *Skill) GetDashboardStats() map[string]interface{} {
 	var stats map[string]int
@@ -514,6 +523,9 @@ func (s *Skill) RunCLI() {
 		jsonBytes, _ := json.Marshal(params)
 		json.Unmarshal(jsonBytes, &p)
 		result = s.GetTaskDetail(p)
+
+	case "get_version":
+		result = s.GetVersion()
 
 	case "get_dashboard_stats":
 		result = s.GetDashboardStats()
