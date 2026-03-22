@@ -203,6 +203,105 @@ EXPOSE 8080
 CMD ["./task-skill", "--server"]
 ```
 
+## 初始化方式
+
+### 服务型 Skills 的初始化模式
+
+本项目属于**服务型 Skill**，与官方文档型 Skills 不同：
+
+**文档型 Skills（官方）**：
+- 形式：`SKILL.md` 文档
+- 作用：指导 Claude 如何完成任务
+- 执行：Claude 阅读文档后执行
+- 示例：pdf, xlsx, pptx 等
+
+**服务型 Skills（本项目）**：
+- 形式：独立运行的服务
+- 作用：提供实际的功能接口
+- 执行：Claude 调用服务 API
+- 示例：mcp-builder, webapp-testing 等
+
+### 初始化步骤
+
+#### 1. 首次启动
+
+```bash
+# 克隆项目
+git clone https://github.com/xfwgithub/aitask-skill.git
+cd aitask-skill/task-management
+
+# 安装依赖
+go mod download
+
+# 启动服务
+./start.sh
+```
+
+#### 2. 配置 Claude
+
+在 Claude 的 Skills 配置中添加：
+```yaml
+name: task-management
+description: 任务管理技能，用于创建、查询、更新任务
+type: service
+endpoint: http://localhost:8080
+```
+
+#### 3. 验证服务
+
+```bash
+# 测试 API
+curl http://localhost:8080/api/stats
+
+# 预期输出
+{
+  "total": 0,
+  "pending": 0,
+  "agent_working": 0,
+  "done": 0,
+  "cancelled": 0
+}
+```
+
+#### 4. 持久化运行
+
+**使用 systemd（Linux）：**
+```bash
+sudo systemctl edit --force task-skill
+```
+
+内容：
+```ini
+[Unit]
+Description=Task Management Skill
+After=network.target
+
+[Service]
+Type=simple
+User=youruser
+WorkingDirectory=/path/to/aitask-skill/task-management
+Environment="TASK_SKILL_PORT=8080"
+ExecStart=/path/to/task-skill --server
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+启动：
+```bash
+sudo systemctl enable task-skill
+sudo systemctl start task-skill
+```
+
+**使用 pm2（跨平台）：**
+```bash
+npm install -g pm2
+cd task-management
+pm2 start task-skill --name task-skill -- --server
+pm2 save
+```
+
 ## 许可证
 
 MIT License
