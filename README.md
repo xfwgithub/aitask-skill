@@ -11,18 +11,18 @@
 ### 方式 1：下载 Release（推荐）
 
 ```bash
-# 下载最新版本（以 v0.2.11 为例）
-curl -L -o /tmp/task-skill-v0.2.11.zip https://github.com/xfwgithub/aitask-skill/releases/download/v0.2.11/task-skill-v0.2.11.zip
+# 下载最新版本
+curl -L -o /tmp/task-skill-v0.2.14.zip https://github.com/xfwgithub/aitask-skill/releases/download/v0.2.14/task-skill-v0.2.14.zip
 
 # 解压
-unzip /tmp/task-skill-v0.2.11.zip -d /tmp/
+unzip /tmp/task-skill-v0.2.14.zip -d /tmp/
 
 # 移动到技能目录
 mkdir -p ~/.agents/skills
-mv /tmp/task-skill-v0.2.11 ~/.agents/skills/task-management
+mv /tmp/task-skill-v0.2.14 ~/.agents/skills/task-management
 
 # 清理
-rm /tmp/task-skill-v0.2.11.zip
+rm /tmp/task-skill-v0.2.14.zip
 ```
 
 ### 方式 2：手动下载
@@ -35,7 +35,9 @@ rm /tmp/task-skill-v0.2.11.zip
 
 **本技能通过 CLI 模式运行**，Agent 通过标准输入/输出 (stdin/stdout) 与技能交互。
 
-**不要**使用 curl 调用 HTTP API，**不需要**启动 `--server` 服务（除非您需要 Web UI）。
+**调用方式**：在技能目录中执行 `echo '{"function": "..."}' | ./task-skill`
+
+**不要**使用 curl 调用 HTTP API。
 
 ### 方式 1：CLI 模式（推荐）
 

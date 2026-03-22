@@ -4,6 +4,8 @@
 *.out
 task-management/task-skill
 task-management/task-skill-*
+task-management/*.zip
+task-management/*.sha256
 task-management/tasks.db
 task-management/*.db-shm
 task-management/*.db-wal
