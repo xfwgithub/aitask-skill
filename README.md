@@ -5,91 +5,71 @@
 ## 平台支持
 
 - **macOS** (Apple Silicon - ARM64) ✅
-- **版本**: 0.2.7
 
-## 快速开始
+## 安装
 
-### 方式 1：作为技能使用（推荐）
+### 从 Release 下载
 
-**安装**：
-```bash
-# 从 GitHub Release 下载完整包（包含 Web 界面资源）
-# https://github.com/xfwgithub/aitask-skill/releases
+1. 访问 [GitHub Releases](https://github.com/xfwgithub/aitask-skill/releases) 下载最新版本
+2. 解压并安装到合适的位置
 
-# 下载 zip 文件：task-skill-v0.2.7.zip
+### 源码编译
 
-# 解压到技能目录
-unzip task-skill-v0.2.7.zip -d ~/.agents/skills/
-mv ~/.agents/skills/task-skill-v0.2.7 ~/.agents/skills/task-management
-
-# 或者从源码安装（开发用）
-cp -r ~/github/aitask-skill/task-management ~/.agents/skills/task-management
-```
-
-**使用**：
-- 在 Claude Code / Trae IDE 中直接使用
-- 说"创建任务"、"查看任务"等自然语言即可
-
-### 方式 2：独立运行 Web 服务
-
-**从源码编译**：
 ```bash
 cd task-management
-go build -o task-skill .
-./task-skill --server
+./build.sh
 ```
 
-**从 Release 下载**：
-```bash
-# 下载对应平台的二进制文件
-./task-skill --server
-```
+## 使用方式
 
-**访问 Web 界面**：http://localhost:8080
-
-### 方式 3：命令行使用
+### 方式 1：CLI 模式（推荐）
 
 ```bash
 # 创建任务
-echo '{"function": "create_task", "parameters": {"title": "我的任务"}}' | ./task-skill
+echo '{"function": "create_task", "parameters": {"title": "我的任务", "project": "myproject"}}' | ./task-skill
 
 # 查询任务
-echo '{"function": "query_tasks"}' | ./task-skill
+echo '{"function": "query_tasks", "parameters": {"status": "pending"}}' | ./task-skill
 
 # 获取统计
 echo '{"function": "get_dashboard_stats"}' | ./task-skill
+
+# 查询版本
+echo '{"function": "get_version"}' | ./task-skill
 ```
 
-## 功能
+### 方式 2：Web 服务模式
 
-### Web 界面
-- 📊 仪表盘 - 任务统计
-- 📋 任务列表 - 浏览、筛选、搜索
-- ➕ 创建任务 - 快速创建
-- 📝 任务详情 - 查看和编辑
-- ✅ 状态管理 - 更新任务状态
+```bash
+./task-skill --server
+```
 
-### API 端点
-- `POST /api/tasks` - 创建任务
-- `GET /api/tasks` - 查询任务
-- `PUT /api/tasks/:uuid/status` - 更新状态
-- `GET /api/stats` - 获取统计
+访问 http://localhost:8080
+
+## 功能特性
+
+### 任务管理
+- 创建任务（支持优先级、项目、标签）
+- 查询任务（支持状态、项目、关键词筛选）
+- 更新任务状态
+- 任务详情查看
+
+### 状态流转
+```
+pending → agent_working → agent_review → human_review → done
+    ↓           ↓             ↓              ↓
+    └───────────┴─────────────┴──────────────┴──→ cancelled
+```
+
+### 原子化操作
+- `claim_task` - 领取任务
+- `complete_task` - 完成任务
+- `review_task` - 提交审查
+- `approve_task` - 审核通过
+- `cancel_task` - 取消任务
 
 ## 技术栈
 
 - **后端**: Go + Echo Framework
-- **数据库**: SQLite (纯 Go 实现)
+- **数据库**: SQLite
 - **前端**: HTMX + 原生 JavaScript
-- **样式**: 自定义 CSS
-
-## 常见问题
-
-**Q: 如何停止服务？**
-A: 根据运行方式选择：
-- **前台运行**：在终端按 `Ctrl+C`
-- **后台运行**：`kill $(pgrep -f "task-skill")` 或 `killall task-skill`
-- **查看进程**：`ps aux | grep task-skill`
-
-## 许可证
-
-MIT License
