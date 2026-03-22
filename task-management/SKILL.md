@@ -113,7 +113,7 @@ platform: macOS (Apple Silicon)
 ```
 
 ### review_task
-提交人工审查（agent_review → human_review）
+提交人工审核（agent_review → human_review）
 
 **参数**:
 - `task_uuid` (string, 必需): 任务 UUID
