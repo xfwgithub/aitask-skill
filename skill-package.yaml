@@ -1,0 +1,166 @@
+---
+# 技能元数据
+name: task-management
+version: 1.0.0
+description: 任务管理技能 - 创建、查询、更新任务的完整解决方案
+author: Your Name
+license: MIT
+type: service
+language: zh-CN
+
+# 技能分类
+categories:
+  - productivity
+  - development
+  - task-management
+
+# 触发关键词
+keywords:
+  - 任务管理
+  - task management
+  - 待办事项
+  - todo
+  - 项目管理
+  - 任务跟踪
+
+# 技能类型
+skill_type: service-based
+requires_runtime: true
+runtime: go
+
+# 服务端点配置
+endpoints:
+  web:
+    path: /
+    description: Web 界面
+  api:
+    path: /api
+    description: REST API
+  health:
+    path: /api/stats
+    description: 健康检查
+
+# 初始化配置
+initialization:
+  script: ./quick-init.sh
+  commands:
+    - go mod download
+    - go build -o task-skill .
+  verify:
+    command: echo '{"function": "get_dashboard_stats"}' | ./task-skill
+    expect: total
+
+# 环境变量
+environment:
+  TASK_SKILL_PORT:
+    default: 8080
+    description: 服务端口
+  TASK_SKILL_DB_PATH:
+    default: tasks.db
+    description: 数据库路径
+
+# API 定义
+api:
+  create_task:
+    method: POST
+    path: /api/tasks
+    description: 创建新任务
+    parameters:
+      - title (string, required)
+      - description (string, optional)
+      - priority (int, optional, default: 3)
+      - tags (array, optional)
+      - assignee_name (string, optional)
+  
+  query_tasks:
+    method: GET
+    path: /api/tasks
+    description: 查询任务列表
+    parameters:
+      - status (string, optional)
+      - priority (int, optional)
+      - assignee (string, optional)
+      - keyword (string, optional)
+      - limit (int, optional, default: 20)
+  
+  update_status:
+    method: PUT
+    path: /api/tasks/:uuid/status
+    description: 更新任务状态
+    parameters:
+      - task_uuid (string, required)
+      - new_status (string, required)
+  
+  get_stats:
+    method: GET
+    path: /api/stats
+    description: 获取统计信息
+
+# 使用示例
+examples:
+  - name: 创建任务
+    prompt: "帮我创建一个紧急任务，明天要完成项目评审"
+    expected_action: create_task
+  
+  - name: 查询任务
+    prompt: "查询我所有待处理的任务"
+    expected_action: query_tasks
+  
+  - name: 更新状态
+    prompt: "把任务'审查文档'标记为已完成"
+    expected_action: update_task_status
+  
+  - name: 查看统计
+    prompt: "统计一下本周完成了多少任务"
+    expected_action: get_stats
+
+# 部署要求
+requirements:
+  go_version: ">=1.21"
+  disk_space: "50MB"
+  memory: "100MB"
+  ports:
+    - 8080/tcp
+
+# 平台兼容性
+platforms:
+  - darwin/amd64
+  - darwin/arm64
+  - linux/amd64
+  - linux/arm64
+  - windows/amd64
+
+# 发布配置
+publishing:
+  github:
+    repository: xfwgithub/aitask-skill
+    marketplace: true
+  skills_marketplace:
+    submit: true
+    category: productivity
+  claude_code:
+    plugin: true
+
+# 维护信息
+maintainers:
+  - name: Your Name
+    email: your.email@example.com
+    github: your-github-username
+
+# 文档链接
+documentation:
+  readme: README.md
+  publishing: PUBLISHING.md
+  api_docs: README.md#api-端点
+  troubleshooting: README.md#故障排除
+
+# 更新日志
+changelog:
+  version: 1.0.0
+  date: 2026-03-22
+  changes:
+    - 初始发布
+    - 实现任务管理核心功能
+    - 添加 Web 界面
+    - 支持 CLI 模式
+    - 数据库持久化

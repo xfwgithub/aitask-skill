@@ -357,3 +357,36 @@ pm2 save
 ## 许可证
 
 MIT License
+
+## 发布到技能市场
+
+详细发布指南请查看 [PUBLISHING.md](PUBLISHING.md)
+
+### 快速发布
+
+```bash
+# 1. 发布到 GitHub
+git tag -a v1.0.0 -m "Initial release"
+git push origin v1.0.0
+
+# 2. 创建 GitHub Release
+# 访问 https://github.com/xfwgithub/aitask-skill/releases/new
+
+# 3. 提交到技能市场
+# - https://skills-mp.com/
+# - https://github.com/anthropics/skills
+```
+
+### 安装方式
+
+**Claude Code:**
+```bash
+/plugin marketplace add xfwgithub/aitask-skill
+```
+
+**手动安装:**
+```bash
+git clone https://github.com/xfwgithub/aitask-skill.git
+cd aitask-skill/task-management
+./quick-init.sh
+```
