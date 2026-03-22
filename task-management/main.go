@@ -260,6 +260,65 @@ func (s *Skill) UpdateTaskStatus(input UpdateTaskStatusInput) map[string]interfa
 	}
 }
 
+// ClaimTaskInput 领取任务输入
+type ClaimTaskInput struct {
+	TaskUUID string `json:"task_uuid"`
+}
+
+// ClaimTask 领取任务（pending → agent_working）
+func (s *Skill) ClaimTask(input ClaimTaskInput) map[string]interface{} {
+	return s.UpdateTaskStatus(UpdateTaskStatusInput{
+		TaskUUID:  input.TaskUUID,
+		NewStatus: "agent_working",
+	})
+}
+
+// CompleteTaskInput 完成任务输入
+type CompleteTaskInput struct {
+	TaskUUID string `json:"task_uuid"`
+}
+
+// CompleteTask 完成任务并提交审查（agent_working → agent_review）
+func (s *Skill) CompleteTask(input CompleteTaskInput) map[string]interface{} {
+	return s.UpdateTaskStatus(UpdateTaskStatusInput{
+		TaskUUID:  input.TaskUUID,
+		NewStatus: "agent_review",
+	})
+}
+
+// ReviewTaskInput 审查任务输入
+type ReviewTaskInput struct {
+	TaskUUID  string `json:"task_uuid"`
+	Approved  bool   `json:"approved"`
+}
+
+// ReviewTask 审查任务（agent_review → human_review 或 done）
+func (s *Skill) ReviewTask(input ReviewTaskInput) map[string]interface{} {
+	var newStatus string
+	if input.Approved {
+		newStatus = "done"
+	} else {
+		newStatus = "pending"
+	}
+	return s.UpdateTaskStatus(UpdateTaskStatusInput{
+		TaskUUID:  input.TaskUUID,
+		NewStatus: newStatus,
+	})
+}
+
+// CancelTaskInput 取消任务输入
+type CancelTaskInput struct {
+	TaskUUID string `json:"task_uuid"`
+}
+
+// CancelTask 取消任务（任意状态 → cancelled）
+func (s *Skill) CancelTask(input CancelTaskInput) map[string]interface{} {
+	return s.UpdateTaskStatus(UpdateTaskStatusInput{
+		TaskUUID:  input.TaskUUID,
+		NewStatus: "cancelled",
+	})
+}
+
 // GetTaskDetailInput 获取任务详情输入
 type GetTaskDetailInput struct {
 	TaskUUID string `json:"task_uuid"`
@@ -413,6 +472,30 @@ func (s *Skill) RunCLI() {
 		jsonBytes, _ := json.Marshal(params)
 		json.Unmarshal(jsonBytes, &p)
 		result = s.UpdateTaskStatus(p)
+
+	case "claim_task":
+		var p ClaimTaskInput
+		jsonBytes, _ := json.Marshal(params)
+		json.Unmarshal(jsonBytes, &p)
+		result = s.ClaimTask(p)
+
+	case "complete_task":
+		var p CompleteTaskInput
+		jsonBytes, _ := json.Marshal(params)
+		json.Unmarshal(jsonBytes, &p)
+		result = s.CompleteTask(p)
+
+	case "review_task":
+		var p ReviewTaskInput
+		jsonBytes, _ := json.Marshal(params)
+		json.Unmarshal(jsonBytes, &p)
+		result = s.ReviewTask(p)
+
+	case "cancel_task":
+		var p CancelTaskInput
+		jsonBytes, _ := json.Marshal(params)
+		json.Unmarshal(jsonBytes, &p)
+		result = s.CancelTask(p)
 
 	case "get_task_detail":
 		var p GetTaskDetailInput

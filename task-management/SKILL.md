@@ -80,42 +80,79 @@ platform: macOS (Apple Silicon)
 }
 ```
 
-### update_task_status
-更新任务状态
+### claim_task
+领取任务（pending → agent_working）
 
 **参数**:
 - `task_uuid` (string, 必需): 任务 UUID
-- `new_status` (string, 必需): 新状态
-
-**任务状态说明**：
-- `pending` - 待办（等待 agent 或人处理）
-- `agent_working` - Agent 工作中（agent 正在处理）
-- `agent_review` - Agent 审核中（agent 完成，等待审核）
-- `human_review` - 人工审核中（等待人审核）
-- `done` - 完成（审核通过）
-- `cancelled` - 取消
-
-**状态流转**：
-```
-pending → agent_working → agent_review → human_review → done
-    ↓           ↓             ↓              ↓
-    └───────────┴─────────────┴──────────────┘
-                        ↓
-                    cancelled
-```
-
-- 审核不通过的任务会重新回到 `pending` 状态
 
 **示例**:
 ```json
 {
-  "function": "update_task_status",
+  "function": "claim_task",
   "parameters": {
-    "task_uuid": "abc-123",
-    "new_status": "done"
+    "task_uuid": "abc-123"
   }
 }
 ```
+
+### complete_task
+完成任务并提交审查（agent_working → agent_review）
+
+**参数**:
+- `task_uuid` (string, 必需): 任务 UUID
+
+**示例**:
+```json
+{
+  "function": "complete_task",
+  "parameters": {
+    "task_uuid": "abc-123"
+  }
+}
+```
+
+### review_task
+审查任务（agent_review → human_review 或 done）
+
+**参数**:
+- `task_uuid` (string, 必需): 任务 UUID
+- `approved` (bool, 必需): 是否通过审查
+
+**示例**:
+```json
+{
+  "function": "review_task",
+  "parameters": {
+    "task_uuid": "abc-123",
+    "approved": true
+  }
+}
+```
+
+### cancel_task
+取消任务（任意状态 → cancelled）
+
+**参数**:
+- `task_uuid` (string, 必需): 任务 UUID
+
+**示例**:
+```json
+{
+  "function": "cancel_task",
+  "parameters": {
+    "task_uuid": "abc-123"
+  }
+}
+```
+
+**任务状态说明**：
+- `pending` - 待办（等待 agent 领取）
+- `agent_working` - Agent 工作中（agent 已领取，正在处理）
+- `agent_review` - Agent 审核中（agent 完成，等待人工审核）
+- `human_review` - 人工审核中（人工审核中）
+- `done` - 完成（审核通过）
+- `cancelled` - 已取消
 
 ### get_task_detail
 获取任务详情
