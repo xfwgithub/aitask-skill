@@ -1,7 +1,7 @@
 ---
 # 技能元数据
 name: task-management
-version: 1.0.0
+version: 0.1.0
 description: 任务管理技能 - 创建、查询、更新任务的完整解决方案
 author: Your Name
 license: MIT
@@ -156,11 +156,12 @@ documentation:
 
 # 更新日志
 changelog:
-  version: 1.0.0
+  version: 0.1.0
   date: 2026-03-22
   changes:
-    - 初始发布
+    - 初始预览版发布
     - 实现任务管理核心功能
     - 添加 Web 界面
     - 支持 CLI 模式
     - 数据库持久化
+    - 支持 macOS (Intel 和 Apple Silicon)
