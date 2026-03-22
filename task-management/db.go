@@ -65,6 +65,17 @@ func (d *Database) migrate() error {
 			return err
 		}
 	}
+	// 检查 parent_uuid 列是否存在
+	err = d.db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('tasks') WHERE name='parent_uuid'`).Scan(&count)
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		_, err = d.db.Exec(`ALTER TABLE tasks ADD COLUMN parent_uuid TEXT`)
+		if err != nil {
+			return err
+		}
+	}
 
 	// 创建索引
 	_, err = d.db.Exec(`CREATE INDEX IF NOT EXISTS idx_status ON tasks(status)`)
@@ -83,6 +94,10 @@ func (d *Database) migrate() error {
 	if err != nil {
 		return err
 	}
+	_, err = d.db.Exec(`CREATE INDEX IF NOT EXISTS idx_parent_uuid ON tasks(parent_uuid)`)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -98,6 +113,7 @@ func (d *Database) initTables() error {
 		status TEXT DEFAULT 'pending',
 		priority INTEGER DEFAULT 3,
 		project TEXT,
+		parent_uuid TEXT,
 		tags TEXT,
 		assignee_name TEXT,
 		agent_type TEXT,
@@ -120,8 +136,8 @@ func (d *Database) initTables() error {
 // CreateTask 创建任务
 func (d *Database) CreateTask(task Task) error {
 	query := `
-	INSERT INTO tasks (uuid, title, description, status, priority, project, tags, assignee_name, agent_type, agent_model, created_at, updated_at)
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	INSERT INTO tasks (uuid, title, description, status, priority, project, parent_uuid, tags, assignee_name, agent_type, agent_model, created_at, updated_at)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
 	_, err := d.db.Exec(query,
@@ -131,6 +147,7 @@ func (d *Database) CreateTask(task Task) error {
 		task.Status,
 		task.Priority,
 		task.Project,
+		task.ParentUUID,
 		task.Tags,
 		task.Assignee,
 		task.AgentType,
@@ -145,7 +162,7 @@ func (d *Database) CreateTask(task Task) error {
 // GetTaskByUUID 根据 UUID 获取任务
 func (d *Database) GetTaskByUUID(uuid string) (*Task, error) {
 	query := `
-	SELECT id, uuid, title, description, status, priority, project, tags, assignee_name, agent_type, agent_model, review_comment, created_at, updated_at
+	SELECT id, uuid, title, description, status, priority, project, parent_uuid, tags, assignee_name, agent_type, agent_model, review_comment, created_at, updated_at
 	FROM tasks
 	WHERE uuid = ?
 	`
@@ -159,6 +176,7 @@ func (d *Database) GetTaskByUUID(uuid string) (*Task, error) {
 		&task.Status,
 		&task.Priority,
 		&task.Project,
+		&task.ParentUUID,
 		&task.Tags,
 		&task.Assignee,
 		&task.AgentType,
@@ -178,7 +196,7 @@ func (d *Database) GetTaskByUUID(uuid string) (*Task, error) {
 // QueryTasks 查询任务
 func (d *Database) QueryTasks(status string, priority int, project string, assignee string, keyword string, limit int) ([]Task, error) {
 	query := `
-	SELECT id, uuid, title, description, status, priority, project, tags, assignee_name, agent_type, agent_model, review_comment, created_at, updated_at
+	SELECT id, uuid, title, description, status, priority, project, parent_uuid, tags, assignee_name, agent_type, agent_model, review_comment, created_at, updated_at
 	FROM tasks
 	WHERE 1=1
 	`
@@ -234,6 +252,7 @@ func (d *Database) QueryTasks(status string, priority int, project string, assig
 			&task.Status,
 			&task.Priority,
 			&task.Project,
+			&task.ParentUUID,
 			&task.Tags,
 			&task.Assignee,
 			&task.AgentType,

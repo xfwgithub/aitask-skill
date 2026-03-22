@@ -124,6 +124,7 @@ func createTaskAPI(c echo.Context) error {
 
 	input.Title = strings.TrimSpace(input.Title)
 	input.Project = strings.TrimSpace(input.Project)
+	input.ParentUUID = strings.TrimSpace(input.ParentUUID)
 
 	if input.Title == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{
@@ -140,10 +141,27 @@ func createTaskAPI(c echo.Context) error {
 	if input.Priority == 0 {
 		input.Priority = 3
 	}
+	if input.ParentUUID != "" {
+		parentTask, err := database.GetTaskByUUID(input.ParentUUID)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{
+				"error": "父任务不存在",
+			})
+		}
+		if parentTask.ParentUUID != nil && *parentTask.ParentUUID != "" {
+			return c.JSON(http.StatusBadRequest, map[string]string{
+				"error": "只支持2级主子任务，不能挂到子任务下",
+			})
+		}
+	}
 
 	uuid := uuid.New().String()
 	tagsStr := strings.Join(input.Tags, ",")
 	project := input.Project
+	var parentUUID *string
+	if input.ParentUUID != "" {
+		parentUUID = &input.ParentUUID
+	}
 
 	task := Task{
 		UUID:        uuid,
@@ -152,6 +170,7 @@ func createTaskAPI(c echo.Context) error {
 		Status:      "pending",
 		Priority:    input.Priority,
 		Project:     &project,
+		ParentUUID:  parentUUID,
 		Tags:        &tagsStr,
 		Assignee:    &input.Assignee,
 		AgentType:   &input.AgentType,
@@ -167,11 +186,12 @@ func createTaskAPI(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"id":      task.ID,
-		"uuid":    task.UUID,
-		"title":   task.Title,
-		"status":  task.Status,
-		"message": "任务已创建",
+		"id":          task.ID,
+		"uuid":        task.UUID,
+		"title":       task.Title,
+		"status":      task.Status,
+		"parent_uuid": task.ParentUUID,
+		"message":     "任务已创建",
 	})
 }
 
@@ -185,6 +205,11 @@ func queryTasksAPI(c echo.Context) error {
 	assignee := c.QueryParam("assignee")
 	keyword := c.QueryParam("keyword")
 	limit := 20
+	if l := c.QueryParam("limit"); l != "" {
+		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 {
+			limit = parsed
+		}
+	}
 
 	tasks, err := database.QueryTasks(status, priority, project, assignee, keyword, limit)
 	if err != nil {

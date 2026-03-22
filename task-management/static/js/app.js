@@ -1,12 +1,46 @@
 // 显示创建模态框
-function showCreateModal() {
+function showCreateModal(parentUUID = '', project = '') {
     document.getElementById('createModal').style.display = 'flex';
+    loadParentTasks(parentUUID);
+    if (project) {
+        document.getElementById('project').value = project;
+    }
 }
 
 // 关闭创建模态框
 function closeCreateModal() {
     document.getElementById('createModal').style.display = 'none';
     document.getElementById('createForm').reset();
+    const parentSelect = document.getElementById('parentTask');
+    if (parentSelect) {
+        parentSelect.innerHTML = '<option value="">无（主任务）</option>';
+    }
+}
+
+function loadParentTasks(selectedUUID = '') {
+    const parentSelect = document.getElementById('parentTask');
+    if (!parentSelect) {
+        return;
+    }
+    fetch('/api/tasks?limit=1000')
+        .then(r => r.json())
+        .then(data => {
+            parentSelect.innerHTML = '<option value="">无（主任务）</option>';
+            if (!data.tasks) {
+                return;
+            }
+            data.tasks
+                .filter(task => !task.parent_uuid)
+                .forEach(task => {
+                    const option = document.createElement('option');
+                    option.value = task.uuid;
+                    option.textContent = task.project ? `${task.title} (${task.project})` : task.title;
+                    parentSelect.appendChild(option);
+                });
+            if (selectedUUID) {
+                parentSelect.value = selectedUUID;
+            }
+        });
 }
 
 // 创建任务
@@ -15,6 +49,7 @@ function createTask(event) {
 
     const title = document.getElementById('title').value.trim();
     const project = document.getElementById('project').value.trim();
+    const parentUUID = document.getElementById('parentTask').value;
 
     if (!title) {
         alert('请输入任务标题');
@@ -31,6 +66,7 @@ function createTask(event) {
         description: document.getElementById('description').value,
         priority: parseInt(document.getElementById('priority').value),
         project: project,
+        parent_uuid: parentUUID,
         assignee_name: document.getElementById('assignee').value,
         tags: document.getElementById('tags').value.split(',').map(t => t.trim()).filter(t => t)
     };

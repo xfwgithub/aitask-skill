@@ -94,6 +94,42 @@
 </div>
 
 <script>
+function renderTaskRow(task, isChild = false) {
+    let actions = '';
+    if (task.status === 'pending' || task.status === 'agent_working' || task.status === 'agent_review') {
+        actions = `
+            <button class="btn btn-sm btn-danger" onclick="updateStatus('${task.uuid}', 'cancelled')">取消</button>
+        `;
+    } else if (task.status === 'human_review') {
+        actions = `
+            <button class="btn btn-sm btn-success" onclick="updateStatus('${task.uuid}', 'done')">通过</button>
+            <button class="btn btn-sm btn-warning" onclick="updateStatus('${task.uuid}', 'pending')">不通过</button>
+        `;
+    } else if (task.status === 'done' || task.status === 'cancelled') {
+        actions = `
+            <button class="btn btn-sm btn-info" onclick="updateStatus('${task.uuid}', 'pending')">重新打开</button>
+        `;
+    }
+    if (!isChild) {
+        actions += ` <button class="btn btn-sm btn-primary" onclick='showCreateModal(${JSON.stringify(task.uuid)}, ${JSON.stringify(task.project || '')})'>+ 子任务</button>`;
+    }
+    actions += ` <button class="btn btn-sm btn-secondary" onclick="editTask('${task.uuid}', '${escapeHtml(task.title)}', ${task.priority}, '${task.project || ''}')">编辑</button>`;
+    const titlePrefix = isChild ? '↳ ' : '';
+    const titleBadge = isChild ? `<span class="badge badge-tag">子任务</span>` : `<span class="badge badge-project">主任务</span>`;
+
+    return `
+        <tr>
+            <td><a href="/tasks/${task.uuid}">${titlePrefix}${escapeHtml(task.title)}</a> ${titleBadge}</td>
+            <td>${task.project ? `<span class="badge badge-project">${escapeHtml(task.project)}</span>` : '-'}</td>
+            <td><span class="badge badge-${task.status}">${task.status}</span></td>
+            <td>P${task.priority}</td>
+            <td>${task.assignee_name || '-'}</td>
+            <td>${task.tags ? task.tags.split(',').map(t => `<span class="badge badge-tag">${t}</span>`).join('') : '-'}</td>
+            <td>${actions}</td>
+        </tr>
+    `;
+}
+
 function loadTasks() {
     const status = document.getElementById('filterStatus').value;
     const project = document.getElementById('filterProject').value;
@@ -112,45 +148,36 @@ function loadTasks() {
                 container.innerHTML = '<p class="empty-state">暂无任务</p>';
                 return;
             }
-            
-            container.innerHTML = '<table class="table"><thead><tr><th>标题</th><th>项目</th><th>状态</th><th>优先级</th><th>负责人</th><th>标签</th><th>操作</th></tr></thead><tbody>' +
-                data.tasks.map(task => {
-                    // 根据状态生成可用的操作按钮（只显示人应该操作的部分）
-                    let actions = '';
-                    if (task.status === 'pending' || task.status === 'agent_working' || task.status === 'agent_review') {
-                        // 待办、Agent 工作中、Agent 审核阶段，人只能取消
-                        actions = `
-                            <button class="btn btn-sm btn-danger" onclick="updateStatus('${task.uuid}', 'cancelled')">取消</button>
-                        `;
-                    } else if (task.status === 'human_review') {
-                        // 人工审核阶段，人可以审核
-                        actions = `
-                            <button class="btn btn-sm btn-success" onclick="updateStatus('${task.uuid}', 'done')">通过</button>
-                            <button class="btn btn-sm btn-warning" onclick="updateStatus('${task.uuid}', 'pending')">不通过</button>
-                        `;
-                    } else if (task.status === 'done' || task.status === 'cancelled') {
-                        // 已完成或已取消，可以重新打开
-                        actions = `
-                            <button class="btn btn-sm btn-info" onclick="updateStatus('${task.uuid}', 'pending')">重新打开</button>
-                        `;
+
+            const childMap = {};
+            const rootTasks = [];
+            data.tasks.forEach(task => {
+                if (task.parent_uuid) {
+                    if (!childMap[task.parent_uuid]) {
+                        childMap[task.parent_uuid] = [];
                     }
-                    
-                    // 添加编辑按钮
-                    actions += ` <button class="btn btn-sm btn-secondary" onclick="editTask('${task.uuid}', '${escapeHtml(task.title)}', ${task.priority}, '${task.project || ''}')">编辑</button>`;
-                    
-                    return `
-                        <tr>
-                            <td><a href="/tasks/${task.uuid}">${escapeHtml(task.title)}</a></td>
-                            <td>${task.project ? `<span class="badge badge-project">${escapeHtml(task.project)}</span>` : '-'}</td>
-                            <td><span class="badge badge-${task.status}">${task.status}</span></td>
-                            <td>P${task.priority}</td>
-                            <td>${task.assignee_name || '-'}</td>
-                            <td>${task.tags ? task.tags.split(',').map(t => `<span class="badge badge-tag">${t}</span>`).join('') : '-'}</td>
-                            <td>${actions}</td>
-                        </tr>
-                    `;
-                }).join('') +
-                '</tbody></table>';
+                    childMap[task.parent_uuid].push(task);
+                } else {
+                    rootTasks.push(task);
+                }
+            });
+
+            const rows = [];
+            rootTasks.forEach(task => {
+                rows.push(renderTaskRow(task, false));
+                (childMap[task.uuid] || []).forEach(childTask => {
+                    rows.push(renderTaskRow(childTask, true));
+                });
+            });
+            Object.keys(childMap).forEach(parentUUID => {
+                if (!rootTasks.find(task => task.uuid === parentUUID)) {
+                    childMap[parentUUID].forEach(childTask => {
+                        rows.push(renderTaskRow(childTask, true));
+                    });
+                }
+            });
+
+            container.innerHTML = '<table class="table"><thead><tr><th>标题</th><th>项目</th><th>状态</th><th>优先级</th><th>负责人</th><th>标签</th><th>操作</th></tr></thead><tbody>' + rows.join('') + '</tbody></table>';
         });
 }
 
@@ -208,9 +235,13 @@ function saveEdit(event) {
 
 // 点击模态框外部关闭编辑模态框
 window.onclick = function(event) {
-    const modal = document.getElementById('editModal');
-    if (event.target === modal) {
+    const editModal = document.getElementById('editModal');
+    const createModal = document.getElementById('createModal');
+    if (event.target === editModal) {
         closeEditModal();
+    }
+    if (event.target === createModal) {
+        closeCreateModal();
     }
 }
 

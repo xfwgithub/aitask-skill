@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var version = "0.2.15"
+var version = "0.3.0"
 
 // Task 任务结构
 type Task struct {
@@ -18,6 +18,7 @@ type Task struct {
 	Status        string  `json:"status"`
 	Priority      int     `json:"priority"`
 	Project       *string `json:"project,omitempty"`
+	ParentUUID    *string `json:"parent_uuid,omitempty"`
 	Tags          *string `json:"tags,omitempty"`
 	Assignee      *string `json:"assignee_name,omitempty"`
 	AgentType     *string `json:"agent_type,omitempty"`
@@ -55,6 +56,7 @@ type CreateTaskInput struct {
 	Description string   `json:"description,omitempty"`
 	Priority    int      `json:"priority,omitempty"`
 	Project     string   `json:"project,omitempty"`
+	ParentUUID  string   `json:"parent_uuid,omitempty"`
 	Tags        []string `json:"tags,omitempty"`
 	Assignee    string   `json:"assignee_name,omitempty"`
 	AgentType   string   `json:"agent_type,omitempty"`
@@ -65,6 +67,7 @@ type CreateTaskInput struct {
 func (s *Skill) CreateTask(input CreateTaskInput) map[string]interface{} {
 	input.Title = strings.TrimSpace(input.Title)
 	input.Project = strings.TrimSpace(input.Project)
+	input.ParentUUID = strings.TrimSpace(input.ParentUUID)
 	if input.Title == "" {
 		return map[string]interface{}{
 			"error": "标题不能为空",
@@ -78,6 +81,39 @@ func (s *Skill) CreateTask(input CreateTaskInput) map[string]interface{} {
 	if input.Priority == 0 {
 		input.Priority = 3
 	}
+	if input.ParentUUID != "" {
+		if s.db != nil {
+			parentTask, err := s.db.GetTaskByUUID(input.ParentUUID)
+			if err != nil {
+				return map[string]interface{}{
+					"error": "父任务不存在",
+				}
+			}
+			if parentTask.ParentUUID != nil && *parentTask.ParentUUID != "" {
+				return map[string]interface{}{
+					"error": "只支持2级主子任务，不能挂到子任务下",
+				}
+			}
+		} else {
+			var parentTask *Task
+			for i := range s.tasks {
+				if s.tasks[i].UUID == input.ParentUUID {
+					parentTask = &s.tasks[i]
+					break
+				}
+			}
+			if parentTask == nil {
+				return map[string]interface{}{
+					"error": "父任务不存在",
+				}
+			}
+			if parentTask.ParentUUID != nil && *parentTask.ParentUUID != "" {
+				return map[string]interface{}{
+					"error": "只支持2级主子任务，不能挂到子任务下",
+				}
+			}
+		}
+	}
 
 	uuid := generateUUID()
 	tagsStr := ""
@@ -89,6 +125,10 @@ func (s *Skill) CreateTask(input CreateTaskInput) map[string]interface{} {
 	if input.Project != "" {
 		project = &input.Project
 	}
+	var parentUUID *string
+	if input.ParentUUID != "" {
+		parentUUID = &input.ParentUUID
+	}
 
 	task := Task{
 		UUID:        uuid,
@@ -97,6 +137,7 @@ func (s *Skill) CreateTask(input CreateTaskInput) map[string]interface{} {
 		Status:      "pending",
 		Priority:    input.Priority,
 		Project:     project,
+		ParentUUID:  parentUUID,
 		Tags:        &tagsStr,
 		Assignee:    &input.Assignee,
 		AgentType:   &input.AgentType,
@@ -391,6 +432,8 @@ func (s *Skill) GetTaskDetail(input GetTaskDetailInput) map[string]interface{} {
 			"description": task.Description,
 			"status":      task.Status,
 			"priority":    task.Priority,
+			"project":     task.Project,
+			"parent_uuid": task.ParentUUID,
 			"assignee":    task.Assignee,
 			"agent_type":  task.AgentType,
 			"agent_model": task.AgentModel,
@@ -410,6 +453,8 @@ func (s *Skill) GetTaskDetail(input GetTaskDetailInput) map[string]interface{} {
 				"description": task.Description,
 				"status":      task.Status,
 				"priority":    task.Priority,
+				"project":     task.Project,
+				"parent_uuid": task.ParentUUID,
 				"assignee":    task.Assignee,
 				"agent_type":  task.AgentType,
 				"agent_model": task.AgentModel,

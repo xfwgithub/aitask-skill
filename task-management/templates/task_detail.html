@@ -14,6 +14,9 @@
             <strong>项目:</strong> {{if .Project}}<span class="badge badge-project">{{.Project}}</span>{{else}}-{{end}}
         </div>
         <div class="info-row">
+            <strong>父任务:</strong> {{if .ParentUUID}}<a href="/tasks/{{.ParentUUID}}">{{.ParentUUID}}</a>{{else}}-{{end}}
+        </div>
+        <div class="info-row">
             <strong>优先级:</strong> P{{.Priority}}
         </div>
         <div class="info-row">
