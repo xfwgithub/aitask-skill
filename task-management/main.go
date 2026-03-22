@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var version = "0.2.12"
+var version = "0.2.13"
 
 // Task 任务结构
 type Task struct {
@@ -543,19 +543,27 @@ func (s *Skill) RunCLI() {
 
 func main() {
 	// 检查命令行参数
-	if len(os.Args) > 1 && os.Args[1] == "--server" {
-		// 启动 Web 服务器
-		startServer()
-	} else {
-		// CLI 模式 - 使用数据库存储
-		db, err := NewDatabase("tasks.db")
-		if err != nil {
-			fmt.Printf(`{"error": "数据库连接失败：%v"}`, err)
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "--server":
+			// 启动 Web 服务器
+			startServer()
+			return
+		case "--version", "-v":
+			// 显示版本号
+			fmt.Printf("task-skill version %s\n", version)
 			return
 		}
-		skill := NewSkillWithDB(db)
-		skill.RunCLI()
 	}
+
+	// CLI 模式 - 使用数据库存储
+	db, err := NewDatabase("tasks.db")
+	if err != nil {
+		fmt.Printf(`{"error": "数据库连接失败：%v"}`, err)
+		return
+	}
+	skill := NewSkillWithDB(db)
+	skill.RunCLI()
 }
 
 // startServer 启动 Web 服务器
