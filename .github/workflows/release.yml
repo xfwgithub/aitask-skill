@@ -19,18 +19,31 @@ jobs:
         with:
           go-version: '1.21'
           cache-dependency-path: task-management/go.sum
+          check-latest: true
+      
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
       
       - name: Install dependencies
         working-directory: ./task-management
-        run: go mod download
+        run: |
+          go mod download
+          go mod verify
       
       - name: Build for macOS Intel
         working-directory: ./task-management
-        run: GOOS=darwin GOARCH=amd64 go build -o task-skill-darwin-amd64 .
+        run: GOOS=darwin GOARCH=amd64 go build -v -o task-skill-darwin-amd64 .
       
       - name: Build for macOS Apple Silicon
         working-directory: ./task-management
-        run: GOOS=darwin GOARCH=arm64 go build -o task-skill-darwin-arm64 .
+        run: GOOS=darwin GOARCH=arm64 go build -v -o task-skill-darwin-arm64 .
       
       - name: Create Release Assets
         run: |
@@ -49,6 +62,6 @@ jobs:
             task-management/task-skill-darwin-arm64.sha256
           generate_release_notes: true
           draft: false
-          prerelease: false
+          prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

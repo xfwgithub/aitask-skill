@@ -42,6 +42,7 @@ func (d *Database) initTables() error {
 		assignee_name TEXT,
 		agent_type TEXT,
 		agent_model TEXT,
+		review_comment TEXT,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
@@ -82,7 +83,7 @@ func (d *Database) CreateTask(task Task) error {
 // GetTaskByUUID 根据 UUID 获取任务
 func (d *Database) GetTaskByUUID(uuid string) (*Task, error) {
 	query := `
-	SELECT id, uuid, title, description, status, priority, tags, assignee_name, agent_type, agent_model, created_at, updated_at
+	SELECT id, uuid, title, description, status, priority, tags, assignee_name, agent_type, agent_model, review_comment, created_at, updated_at
 	FROM tasks
 	WHERE uuid = ?
 	`
@@ -99,6 +100,7 @@ func (d *Database) GetTaskByUUID(uuid string) (*Task, error) {
 		&task.Assignee,
 		&task.AgentType,
 		&task.AgentModel,
+		&task.ReviewComment,
 		&task.CreatedAt,
 		&task.UpdatedAt,
 	)
@@ -113,7 +115,7 @@ func (d *Database) GetTaskByUUID(uuid string) (*Task, error) {
 // QueryTasks 查询任务
 func (d *Database) QueryTasks(status string, priority int, assignee string, keyword string, limit int) ([]Task, error) {
 	query := `
-	SELECT id, uuid, title, description, status, priority, tags, assignee_name, agent_type, agent_model, created_at, updated_at
+	SELECT id, uuid, title, description, status, priority, tags, assignee_name, agent_type, agent_model, review_comment, created_at, updated_at
 	FROM tasks
 	WHERE 1=1
 	`
@@ -167,6 +169,7 @@ func (d *Database) QueryTasks(status string, priority int, assignee string, keyw
 			&task.Assignee,
 			&task.AgentType,
 			&task.AgentModel,
+			&task.ReviewComment,
 			&task.CreatedAt,
 			&task.UpdatedAt,
 		)
@@ -191,12 +194,26 @@ func (d *Database) UpdateTaskStatus(uuid string, newStatus string) error {
 	return err
 }
 
+// UpdateTaskStatusWithComment 更新任务状态并添加审核意见
+func (d *Database) UpdateTaskStatusWithComment(uuid string, newStatus string, comment string) error {
+	query := `
+	UPDATE tasks
+	SET status = ?, review_comment = ?, updated_at = ?
+	WHERE uuid = ?
+	`
+
+	_, err := d.db.Exec(query, newStatus, comment, time.Now().Format(time.RFC3339), uuid)
+	return err
+}
+
 // GetDashboardStats 获取统计信息
 func (d *Database) GetDashboardStats() (map[string]int, error) {
 	stats := map[string]int{
 		"total":         0,
 		"pending":       0,
 		"agent_working": 0,
+		"agent_review":  0,
+		"human_review":  0,
 		"done":          0,
 		"cancelled":     0,
 	}
@@ -235,6 +252,10 @@ func (d *Database) GetDashboardStats() (map[string]int, error) {
 			stats["pending"] = count
 		case "agent_working":
 			stats["agent_working"] = count
+		case "agent_review":
+			stats["agent_review"] = count
+		case "human_review":
+			stats["human_review"] = count
 		case "done":
 			stats["done"] = count
 		case "cancelled":

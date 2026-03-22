@@ -180,7 +180,8 @@ func queryTasksAPI(c echo.Context) error {
 func updateTaskStatusAPI(c echo.Context) error {
 	uuid := c.Param("uuid")
 	var input struct {
-		NewStatus string `json:"new_status"`
+		NewStatus     string `json:"new_status"`
+		ReviewComment string `json:"review_comment"`
 	}
 
 	if err := c.Bind(&input); err != nil {
@@ -189,7 +190,14 @@ func updateTaskStatusAPI(c echo.Context) error {
 		})
 	}
 
-	if err := database.UpdateTaskStatus(uuid, input.NewStatus); err != nil {
+	var err error
+	if input.ReviewComment != "" {
+		err = database.UpdateTaskStatusWithComment(uuid, input.NewStatus, input.ReviewComment)
+	} else {
+		err = database.UpdateTaskStatus(uuid, input.NewStatus)
+	}
+
+	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "更新失败",
 		})

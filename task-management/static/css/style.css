@@ -86,6 +86,24 @@ body {
     color: white;
 }
 
+.btn-info {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-info:hover {
+    background: #138496;
+}
+
+.btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #218838;
+}
+
 .btn-danger {
     background: #e74c3c;
     color: white;
@@ -94,6 +112,42 @@ body {
 .btn-sm {
     padding: 5px 10px;
     font-size: 12px;
+}
+
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.help-text {
+    font-size: 13px;
+    color: #666;
+    font-style: italic;
+}
+
+/* 审核意见 */
+.task-review-comment {
+    margin-top: 30px;
+    padding: 20px;
+    background: #fff3cd;
+    border-radius: 8px;
+    border-left: 4px solid #f39c12;
+}
+
+.task-review-comment h3 {
+    margin-top: 0;
+    color: #856404;
+    font-size: 16px;
+}
+
+.review-comment-box {
+    padding: 15px;
+    background: white;
+    border-radius: 4px;
+    color: #333;
+    line-height: 1.6;
 }
 
 /* 表单 */
@@ -197,6 +251,16 @@ body {
 .badge-agent_working {
     background: #cce5ff;
     color: #004085;
+}
+
+.badge-agent_review {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.badge-human_review {
+    background: #e2d5f1;
+    color: #4a3b60;
 }
 
 .badge-done {

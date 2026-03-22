@@ -9,11 +9,19 @@
         </div>
         <div class="stat-card">
             <div class="stat-number" id="pending">-</div>
-            <div class="stat-label">待处理</div>
+            <div class="stat-label">待办</div>
         </div>
         <div class="stat-card">
             <div class="stat-number" id="agent_working">-</div>
-            <div class="stat-label">进行中</div>
+            <div class="stat-label">Agent 工作中</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="agent_review">-</div>
+            <div class="stat-label">Agent 审核</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="human_review">-</div>
+            <div class="stat-label">人工审核</div>
         </div>
         <div class="stat-card">
             <div class="stat-number" id="done">-</div>
@@ -39,6 +47,8 @@ fetch('/api/stats')
         document.getElementById('total').textContent = data.total || 0;
         document.getElementById('pending').textContent = data.pending || 0;
         document.getElementById('agent_working').textContent = data.agent_working || 0;
+        document.getElementById('agent_review').textContent = data.agent_review || 0;
+        document.getElementById('human_review').textContent = data.human_review || 0;
         document.getElementById('done').textContent = data.done || 0;
         document.getElementById('cancelled').textContent = data.cancelled || 0;
     });

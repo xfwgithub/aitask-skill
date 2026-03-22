@@ -9,29 +9,40 @@ import (
 
 // Task 任务结构
 type Task struct {
-	ID          int64   `json:"id"`
-	UUID        string  `json:"uuid"`
-	Title       string  `json:"title"`
-	Description string  `json:"description,omitempty"`
-	Status      string  `json:"status"`
-	Priority    int     `json:"priority"`
-	Tags        *string `json:"tags,omitempty"`
-	Assignee    *string `json:"assignee_name,omitempty"`
-	AgentType   *string `json:"agent_type,omitempty"`
-	AgentModel  *string `json:"agent_model,omitempty"`
-	CreatedAt   string  `json:"created_at"`
-	UpdatedAt   string  `json:"updated_at"`
+	ID            int64   `json:"id"`
+	UUID          string  `json:"uuid"`
+	Title         string  `json:"title"`
+	Description   string  `json:"description,omitempty"`
+	Status        string  `json:"status"`
+	Priority      int     `json:"priority"`
+	Tags          *string `json:"tags,omitempty"`
+	Assignee      *string `json:"assignee_name,omitempty"`
+	AgentType     *string `json:"agent_type,omitempty"`
+	AgentModel    *string `json:"agent_model,omitempty"`
+	ReviewComment *string `json:"review_comment,omitempty"`
+	CreatedAt     string  `json:"created_at"`
+	UpdatedAt     string  `json:"updated_at"`
 }
 
 // Skill 技能结构
 type Skill struct {
 	tasks []Task
+	db    *Database
 }
 
-// NewSkill 创建新技能实例
+// NewSkill 创建新技能实例（内存模式）
 func NewSkill() *Skill {
 	return &Skill{
 		tasks: make([]Task, 0),
+		db:    nil,
+	}
+}
+
+// NewSkillWithDB 创建新技能实例（数据库模式）
+func NewSkillWithDB(db *Database) *Skill {
+	return &Skill{
+		tasks: make([]Task, 0),
+		db:    db,
 	}
 }
 
@@ -49,10 +60,12 @@ type CreateTaskInput struct {
 // CreateTask 创建任务
 func (s *Skill) CreateTask(input CreateTaskInput) map[string]interface{} {
 	uuid := generateUUID()
-	tagsStr := strings.Join(input.Tags, ",")
-	
+	tagsStr := ""
+	if len(input.Tags) > 0 {
+		tagsStr = strings.Join(input.Tags, ",")
+	}
+
 	task := Task{
-		ID:          int64(len(s.tasks) + 1),
 		UUID:        uuid,
 		Title:       input.Title,
 		Description: input.Description,
@@ -65,9 +78,21 @@ func (s *Skill) CreateTask(input CreateTaskInput) map[string]interface{} {
 		CreatedAt:   getCurrentTime(),
 		UpdatedAt:   getCurrentTime(),
 	}
-	
-	s.tasks = append(s.tasks, task)
-	
+
+	// 使用数据库存储
+	if s.db != nil {
+		err := s.db.CreateTask(task)
+		if err != nil {
+			return map[string]interface{}{
+				"error": fmt.Sprintf("创建任务失败：%v", err),
+			}
+		}
+	} else {
+		// 内存模式（向后兼容）
+		task.ID = int64(len(s.tasks) + 1)
+		s.tasks = append(s.tasks, task)
+	}
+
 	return map[string]interface{}{
 		"id":      task.ID,
 		"uuid":    task.UUID,
@@ -88,57 +113,80 @@ type QueryTasksInput struct {
 
 // QueryTasks 查询任务
 func (s *Skill) QueryTasks(input QueryTasksInput) map[string]interface{} {
-	var filtered []Task
-	
-	for _, task := range s.tasks {
-		// 状态筛选
-		if input.Status != "" && task.Status != input.Status {
-			continue
+	var tasks []Task
+
+	// 使用数据库查询
+	if s.db != nil {
+		var err error
+		tasks, err = s.db.QueryTasks(input.Status, input.Priority, input.Assignee, input.Keyword, input.Limit)
+		if err != nil {
+			return map[string]interface{}{
+				"error": fmt.Sprintf("查询任务失败：%v", err),
+			}
 		}
-		// 优先级筛选
-		if input.Priority != 0 && task.Priority != input.Priority {
-			continue
+	} else {
+		// 内存模式（向后兼容）
+		var filtered []Task
+		for _, task := range s.tasks {
+			if input.Status != "" && task.Status != input.Status {
+				continue
+			}
+			if input.Priority != 0 && task.Priority != input.Priority {
+				continue
+			}
+			if input.Assignee != "" && (task.Assignee == nil || *task.Assignee != input.Assignee) {
+				continue
+			}
+			if input.Keyword != "" && !strings.Contains(task.Title, input.Keyword) {
+				continue
+			}
+			filtered = append(filtered, task)
 		}
-		// 负责人筛选
-		if input.Assignee != "" && (task.Assignee == nil || *task.Assignee != input.Assignee) {
-			continue
+		limit := input.Limit
+		if limit == 0 || limit > len(filtered) {
+			limit = len(filtered)
 		}
-		// 关键词筛选
-		if input.Keyword != "" && !strings.Contains(task.Title, input.Keyword) {
-			continue
-		}
-		
-		filtered = append(filtered, task)
+		tasks = filtered[:limit]
 	}
-	
-	// 限制数量
-	limit := input.Limit
-	if limit == 0 || limit > len(filtered) {
-		limit = len(filtered)
-	}
-	
-	resultTasks := filtered[:limit]
-	
+
 	return map[string]interface{}{
-		"total": len(resultTasks),
-		"tasks": resultTasks,
+		"total": len(tasks),
+		"tasks": tasks,
 	}
 }
 
 // UpdateTaskStatusInput 更新任务状态输入
 type UpdateTaskStatusInput struct {
-	TaskUUID  string `json:"task_uuid"`
-	NewStatus string `json:"new_status"`
+	TaskUUID      string `json:"task_uuid"`
+	NewStatus     string `json:"new_status"`
+	ReviewComment string `json:"review_comment,omitempty"`
 }
 
 // UpdateTaskStatus 更新任务状态
 func (s *Skill) UpdateTaskStatus(input UpdateTaskStatusInput) map[string]interface{} {
+	// 使用数据库更新
+	if s.db != nil {
+		err := s.db.UpdateTaskStatusWithComment(input.TaskUUID, input.NewStatus, input.ReviewComment)
+		if err != nil {
+			return map[string]interface{}{
+				"error": fmt.Sprintf("更新失败：%v", err),
+			}
+		}
+		return map[string]interface{}{
+			"uuid":       input.TaskUUID,
+			"old_status": "",
+			"new_status": input.NewStatus,
+			"message":    fmt.Sprintf("任务状态已更新为 %s", input.NewStatus),
+		}
+	}
+
+	// 内存模式（向后兼容）
 	for i, task := range s.tasks {
 		if task.UUID == input.TaskUUID {
 			oldStatus := task.Status
 			s.tasks[i].Status = input.NewStatus
 			s.tasks[i].UpdatedAt = getCurrentTime()
-			
+
 			return map[string]interface{}{
 				"uuid":       task.UUID,
 				"old_status": oldStatus,
@@ -147,7 +195,7 @@ func (s *Skill) UpdateTaskStatus(input UpdateTaskStatusInput) map[string]interfa
 			}
 		}
 	}
-	
+
 	return map[string]interface{}{
 		"error": "任务不存在",
 	}
@@ -160,6 +208,31 @@ type GetTaskDetailInput struct {
 
 // GetTaskDetail 获取任务详情
 func (s *Skill) GetTaskDetail(input GetTaskDetailInput) map[string]interface{} {
+	// 使用数据库查询
+	if s.db != nil {
+		task, err := s.db.GetTaskByUUID(input.TaskUUID)
+		if err != nil {
+			return map[string]interface{}{
+				"error": "任务不存在",
+			}
+		}
+		return map[string]interface{}{
+			"id":          task.ID,
+			"uuid":        task.UUID,
+			"title":       task.Title,
+			"description": task.Description,
+			"status":      task.Status,
+			"priority":    task.Priority,
+			"assignee":    task.Assignee,
+			"agent_type":  task.AgentType,
+			"agent_model": task.AgentModel,
+			"tags":        task.Tags,
+			"created_at":  task.CreatedAt,
+			"updated_at":  task.UpdatedAt,
+		}
+	}
+
+	// 内存模式（向后兼容）
 	for _, task := range s.tasks {
 		if task.UUID == input.TaskUUID {
 			return map[string]interface{}{
@@ -178,7 +251,7 @@ func (s *Skill) GetTaskDetail(input GetTaskDetailInput) map[string]interface{} {
 			}
 		}
 	}
-	
+
 	return map[string]interface{}{
 		"error": "任务不存在",
 	}
@@ -186,31 +259,52 @@ func (s *Skill) GetTaskDetail(input GetTaskDetailInput) map[string]interface{} {
 
 // GetDashboardStats 获取仪表盘统计
 func (s *Skill) GetDashboardStats() map[string]interface{} {
-	stats := map[string]int{
-		"total":         len(s.tasks),
-		"pending":       0,
-		"agent_working": 0,
-		"done":          0,
-		"cancelled":     0,
-	}
-	
-	for _, task := range s.tasks {
-		switch task.Status {
-		case "pending":
-			stats["pending"]++
-		case "agent_working":
-			stats["agent_working"]++
-		case "done":
-			stats["done"]++
-		case "cancelled":
-			stats["cancelled"]++
+	var stats map[string]int
+
+	// 使用数据库统计
+	if s.db != nil {
+		var err error
+		stats, err = s.db.GetDashboardStats()
+		if err != nil {
+			return map[string]interface{}{
+				"error": fmt.Sprintf("获取统计失败：%v", err),
+			}
+		}
+	} else {
+		// 内存模式（向后兼容）
+		stats = map[string]int{
+			"total":         len(s.tasks),
+			"pending":       0,
+			"agent_working": 0,
+			"agent_review":  0,
+			"human_review":  0,
+			"done":          0,
+			"cancelled":     0,
+		}
+		for _, task := range s.tasks {
+			switch task.Status {
+			case "pending":
+				stats["pending"]++
+			case "agent_working":
+				stats["agent_working"]++
+			case "agent_review":
+				stats["agent_review"]++
+			case "human_review":
+				stats["human_review"]++
+			case "done":
+				stats["done"]++
+			case "cancelled":
+				stats["cancelled"]++
+			}
 		}
 	}
-	
+
 	return map[string]interface{}{
 		"total":         stats["total"],
 		"pending":       stats["pending"],
 		"agent_working": stats["agent_working"],
+		"agent_review":  stats["agent_review"],
+		"human_review":  stats["human_review"],
 		"done":          stats["done"],
 		"cancelled":     stats["cancelled"],
 	}
@@ -287,8 +381,13 @@ func main() {
 		// 启动 Web 服务器
 		startServer()
 	} else {
-		// CLI 模式
-		skill := NewSkill()
+		// CLI 模式 - 使用数据库存储
+		db, err := NewDatabase("tasks.db")
+		if err != nil {
+			fmt.Printf(`{"error": "数据库连接失败：%v"}`, err)
+			return
+		}
+		skill := NewSkillWithDB(db)
 		skill.RunCLI()
 	}
 }
