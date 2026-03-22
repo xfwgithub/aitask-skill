@@ -11,18 +11,18 @@
 ### 方式 1：下载 Release（推荐）
 
 ```bash
-# 下载最新版本（以 v0.2.10 为例）
-curl -L -o /tmp/task-skill-v0.2.10.zip https://github.com/xfwgithub/aitask-skill/releases/download/v0.2.10/task-skill-v0.2.10.zip
+# 下载最新版本（以 v0.2.11 为例）
+curl -L -o /tmp/task-skill-v0.2.11.zip https://github.com/xfwgithub/aitask-skill/releases/download/v0.2.11/task-skill-v0.2.11.zip
 
 # 解压
-unzip /tmp/task-skill-v0.2.10.zip -d /tmp/
+unzip /tmp/task-skill-v0.2.11.zip -d /tmp/
 
 # 移动到技能目录
 mkdir -p ~/.agents/skills
-mv /tmp/task-skill-v0.2.10 ~/.agents/skills/task-management
+mv /tmp/task-skill-v0.2.11 ~/.agents/skills/task-management
 
 # 清理
-rm /tmp/task-skill-v0.2.10.zip
+rm /tmp/task-skill-v0.2.11.zip
 ```
 
 ### 方式 2：手动下载
@@ -30,6 +30,12 @@ rm /tmp/task-skill-v0.2.10.zip
 访问 [GitHub Releases](https://github.com/xfwgithub/aitask-skill/releases) 下载 `task-skill-vX.Y.Z.zip`，解压到 `~/.agents/skills/task-management`。
 
 ## 使用方式
+
+### ⚠️ 重要说明
+
+**本技能通过 CLI 模式运行**，Agent 通过标准输入/输出 (stdin/stdout) 与技能交互。
+
+**不要**使用 curl 调用 HTTP API，**不需要**启动 `--server` 服务（除非您需要 Web UI）。
 
 ### 方式 1：CLI 模式（推荐）
 
@@ -40,6 +46,12 @@ echo '{"function": "create_task", "parameters": {"title": "我的任务", "proje
 # 查询任务
 echo '{"function": "query_tasks", "parameters": {"status": "pending"}}' | ./task-skill
 
+# 领取任务
+echo '{"function": "claim_task", "parameters": {"task_uuid": "abc-123"}}' | ./task-skill
+
+# 提交初审
+echo '{"function": "submit_initial_review", "parameters": {"task_uuid": "abc-123"}}' | ./task-skill
+
 # 获取统计
 echo '{"function": "get_dashboard_stats"}' | ./task-skill
 
@@ -47,13 +59,23 @@ echo '{"function": "get_dashboard_stats"}' | ./task-skill
 echo '{"function": "get_version"}' | ./task-skill
 ```
 
-### 方式 2：Web 服务模式
+**说明**：
+- ✅ CLI 模式是默认的、推荐的调用方式
+- ✅ 数据库会自动初始化（首次运行时创建 `tasks.db`）
+- ✅ 不需要启动 HTTP 服务器
+
+### 方式 2：Web 服务模式（可选）
 
 ```bash
 ./task-skill --server
 ```
 
 访问 http://localhost:8080
+
+**说明**：
+- ℹ️ Web UI 仅供人类用户通过浏览器管理任务
+- ℹ️ Agent 调用技能**不需要**启动 Web 服务
+- ℹ️ 如需要 Web UI，可在后台运行：`./task-skill --server &`
 
 ## 功能特性
 

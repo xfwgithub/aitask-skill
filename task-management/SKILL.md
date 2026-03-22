@@ -1,7 +1,7 @@
 ---
 name: task-management
 description: 零依赖、高性能的任务管理技能。当用户需要创建、查询、更新、删除任务或获取任务统计时使用此技能。
-version: 0.2.10
+version: 0.2.12
 platform: macOS (Apple Silicon)
 ---
 
@@ -11,37 +11,63 @@ platform: macOS (Apple Silicon)
 
 ### 如何调用技能
 
-当触发技能时，系统会自动执行：
+**重要**：本技能通过 **Bash 命令**调用，命令格式如下：
+
 ```bash
-echo '{"function": "函数名", "parameters": {...}}' | ./task-skill
+cd ~/.agents/skills/task-management && echo '{"function": "函数名", "parameters": {...}}' | ./task-skill
 ```
+
+**注意**：
+- 必须先 `cd` 到技能目录
+- 通过 `echo` 将 JSON 参数传递给 `./task-skill`
+- 技能通过 stdout 返回 JSON 结果
 
 **示例**：
 ```bash
 # 查询待办任务
-echo '{"function": "query_tasks", "parameters": {"status": "pending"}}' | ./task-skill
+cd ~/.agents/skills/task-management && echo '{"function": "query_tasks", "parameters": {"status": "pending"}}' | ./task-skill
 
 # 创建任务
-echo '{"function": "create_task", "parameters": {"title": "审查文档", "project": "aitask-skill"}}' | ./task-skill
+cd ~/.agents/skills/task-management && echo '{"function": "create_task", "parameters": {"title": "审查文档", "project": "aitask-skill"}}' | ./task-skill
+
+# 领取任务
+cd ~/.agents/skills/task-management && echo '{"function": "claim_task", "parameters": {"task_uuid": "abc-123"}}' | ./task-skill
 ```
 
-### ⛔ 不要这样做
+### ⛔ 严格禁止的行为
 
-**错误**：使用 curl 调用 API
+**无论任何情况，都不得使用以下方式**：
+
+**错误 1**：使用 curl 调用 API（即使已启动 Web 服务）
 ```bash
-curl http://localhost:8080/api/tasks  # ❌ 错误！
+curl http://localhost:8080/api/tasks  # ❌ 绝对禁止！
 ```
 
-**错误**：先启动服务器再调用
+**错误 2**：先启动服务器再通过 API 调用
 ```bash
 ./task-skill --server  # ❌ 不需要！
 ```
 
+**错误 3**：启动 Web 服务后改用 HTTP API
+```bash
+# 即使 Web UI 已启动，也必须继续使用 CLI
+echo '{"function": "query_tasks", ...}' | ./task-skill  # ✅ 正确
+curl http://localhost:8080/api/tasks  # ❌ 错误！
+```
+
 ### ℹ️ 关于 --server 模式
 
-`./task-skill --server` 仅用于启动 **Web UI 前端**（供人类使用），与 Agent 调用技能无关。
+`./task-skill --server` 启动 **Web UI**，用于**人机协作**。
 
-Agent 应该直接通过 CLI (stdin/stdout) 调用技能，不需要启动服务器。
+**Agent 调用原则**：
+- ✅ Agent **始终**通过 CLI (stdin/stdout) 调用技能
+- ✅ **无论 Web 服务是否启动**，Agent 都使用 CLI 方式
+- ❌ Agent **不得使用** curl 或任何 HTTP 客户端调用 API
+
+**人机协作场景**：
+- 如果用户需要查看 Web 界面，Agent 可以启动 Web 服务
+- Web UI 启动后，**Agent 继续通过 CLI 与技能交互**
+- 人类通过浏览器访问 Web UI，Agent 通过 CLI 访问，两者数据互通
 
 ---
 
@@ -151,7 +177,7 @@ Agent 应该直接通过 CLI (stdin/stdout) 调用技能，不需要启动服务
 **示例**:
 ```json
 {
-  "function": "complete_task",
+  "function": "submit_initial_review",
   "parameters": {
     "task_uuid": "abc-123"
   }
@@ -209,9 +235,9 @@ Agent 应该直接通过 CLI (stdin/stdout) 调用技能，不需要启动服务
 **任务状态说明**：
 - `pending` - 待办（等待 agent 领取）
 - `agent_working` - Agent 工作中（agent 已领取，正在处理）
-- `agent_review` - Agent 审核中（agent 完成，等待人工审核）
-- `human_review` - 人工审核中（人工审核中）
-- `done` - 完成（审核通过）
+- `agent_review` - Agent 审核中（agent 提交初审后，等待 agent 自己审核确认）
+- `human_review` - 人工审核中（agent 审核通过后，提交给人工审核）
+- `done` - 完成（人工审核通过）
 - `cancelled` - 已取消
 
 ### get_task_detail
@@ -268,36 +294,6 @@ Agent 应该直接通过 CLI (stdin/stdout) 调用技能，不需要启动服务
     "due_date": "2026-03-22"
   }
 }
-
-## 执行方式
-
-**重要**：本技能通过 **CLI 模式** 运行，Agent 通过标准输入/输出 (stdin/stdout) 与技能交互。
-
-### 调用示例
-
-```bash
-# 查询待办任务
-echo '{"function": "query_tasks", "parameters": {"status": "pending"}}' | ./task-skill
-
-# 创建任务
-echo '{"function": "create_task", "parameters": {"title": "审查文档", "project": "aitask-skill"}}' | ./task-skill
-
-# 领取任务
-echo '{"function": "claim_task", "parameters": {"task_uuid": "abc-123"}}' | ./task-skill
-
-# 提交初审
-echo '{"function": "submit_initial_review", "parameters": {"task_uuid": "abc-123"}}' | ./task-skill
-
-# 获取版本
-echo '{"function": "get_version"}' | ./task-skill
-```
-
-**重要提示**：
-- ✅ **正确方式**：通过 CLI (stdin/stdout) 调用
-- ❌ **错误方式**：使用 curl 调用 HTTP API
-- ❌ **错误方式**：启动 --server 服务后通过 API 调用
-
-Agent 应该直接将 JSON 发送到技能的 stdin，然后从 stdout 读取结果。
 
 ## 安装路径
 
