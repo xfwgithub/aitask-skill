@@ -229,16 +229,38 @@ platform: macOS (Apple Silicon)
   }
 }
 
+## 安装路径
+
+技能应安装在以下位置：
+- **Agent 技能目录**: `~/.agents/skills/task-management/`
+- **Claude Code 软链接**: `~/.claude/skills/task-management` → `~/.agents/skills/task-management`
+
+## 初始化
+
+首次使用或数据库损坏时：
+
+```bash
+# 1. 确保在正确的目录
+cd ~/.agents/skills/task-management
+
+# 2. 启动服务会自动初始化数据库
+./task-skill --server
+
+# 或在后台运行
+./task-skill --server &
+```
+
 ## 更新技能说明
 
 当用户要求更新技能时：
 
 1. **不要**使用 `git pull` 拉取源码
-2. **正确方式**：
+2. **不要**使用 `git clone` 重新克隆
+3. **正确方式**：
    - 访问 https://github.com/xfwgithub/aitask-skill/releases
    - 下载最新版本的 `task-skill-vX.Y.Z.zip`
-   - 解压并替换现有技能目录中的文件
+   - 解压并替换 `~/.agents/skills/task-management/` 中的文件
    - 重启服务（如果使用 `--server` 模式）
 
-3. 更新前可以使用 `get_version` 检查当前版本
+4. 更新前可以使用 `get_version` 检查当前版本
 ```
