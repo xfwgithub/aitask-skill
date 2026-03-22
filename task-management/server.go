@@ -122,6 +122,18 @@ func createTaskAPI(c echo.Context) error {
 		})
 	}
 
+	if input.Title == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "标题不能为空",
+		})
+	}
+
+	if input.Project == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "项目不能为空",
+		})
+	}
+
 	if input.Priority == 0 {
 		input.Priority = 3
 	}

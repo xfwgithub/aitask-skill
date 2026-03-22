@@ -12,12 +12,25 @@ function closeCreateModal() {
 // 创建任务
 function createTask(event) {
     event.preventDefault();
-    
+
+    const title = document.getElementById('title').value.trim();
+    const project = document.getElementById('project').value.trim();
+
+    if (!title) {
+        alert('请输入任务标题');
+        return;
+    }
+
+    if (!project) {
+        alert('请输入项目名称');
+        return;
+    }
+
     const data = {
-        title: document.getElementById('title').value,
+        title: title,
         description: document.getElementById('description').value,
         priority: parseInt(document.getElementById('priority').value),
-        project: document.getElementById('project').value,
+        project: project,
         assignee_name: document.getElementById('assignee').value,
         tags: document.getElementById('tags').value.split(',').map(t => t.trim()).filter(t => t)
     };
