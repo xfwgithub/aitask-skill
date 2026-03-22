@@ -5,48 +5,56 @@
 ## 平台支持
 
 - **macOS** (Apple Silicon - ARM64) ✅
-- **版本**: 0.1.0
+- **版本**: 0.2.1
 
 ## 快速开始
 
-### 1. 编译和运行
+### 方式 1：作为技能使用（推荐）
 
-**方式 1：前台运行（开发调试）**
+**安装**：
 ```bash
-cd task-management
-go run .
-# 服务启动后，按 Ctrl+C 停止
+# 从 GitHub Release 下载编译好的二进制
+# https://github.com/xfwgithub/aitask-skill/releases
+
+# 解压到技能目录
+unzip task-skill-v0.2.1.zip -d ~/.agents/skills/task-management
+
+# 或者从源码安装（开发用）
+cp -r ~/github/aitask-skill/task-management ~/.agents/skills/task-management
 ```
 
-**方式 2：后台运行（推荐使用）**
-```bash
-cd task-management
-go run . &
-# 后台运行，使用 jobs 查看状态，fg 带回前台
-```
+**使用**：
+- 在 Claude Code / Trae IDE 中直接使用
+- 说"创建任务"、"查看任务"等自然语言即可
 
-**方式 3：编译后运行**
+### 方式 2：独立运行 Web 服务
+
+**从源码编译**：
 ```bash
 cd task-management
 go build -o task-skill .
 ./task-skill --server
 ```
 
-### 2. 访问 Web 界面
+**从 Release 下载**：
+```bash
+# 下载对应平台的二进制文件
+./task-skill --server
+```
 
-打开浏览器访问：http://localhost:8080
+**访问 Web 界面**：http://localhost:8080
 
-### 3. 命令行使用
+### 方式 3：命令行使用
 
 ```bash
 # 创建任务
-echo '{"function": "create_task", "parameters": {"title": "我的任务"}}' | go run .
+echo '{"function": "create_task", "parameters": {"title": "我的任务"}}' | ./task-skill
 
 # 查询任务
-echo '{"function": "query_tasks"}' | go run .
+echo '{"function": "query_tasks"}' | ./task-skill
 
 # 获取统计
-echo '{"function": "get_dashboard_stats"}' | go run .
+echo '{"function": "get_dashboard_stats"}' | ./task-skill
 ```
 
 ## 功能

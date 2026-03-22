@@ -5,9 +5,13 @@
 task-management/task-skill
 task-management/task-skill-*
 task-management/tasks.db
+task-management/*.db-shm
+task-management/*.db-wal
 
 # Database
 *.db
+*.db-shm
+*.db-wal
 
 # IDE
 .vscode/
