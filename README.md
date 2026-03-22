@@ -8,17 +8,7 @@
 
 ## 安装
 
-### 从 Release 下载
-
-1. 访问 [GitHub Releases](https://github.com/xfwgithub/aitask-skill/releases) 下载最新版本
-2. 解压并安装到合适的位置
-
-### 源码编译
-
-```bash
-cd task-management
-./build.sh
-```
+访问 [GitHub Releases](https://github.com/xfwgithub/aitask-skill/releases) 下载最新版本，解压到合适的位置。
 
 ## 使用方式
 
