@@ -370,6 +370,25 @@ func (d *Database) GetDashboardStats() (map[string]int, error) {
 	return stats, rows.Err()
 }
 
+// RecycleTasks 回收到期未完成的任务
+// 将 due_date 之前创建的、状态为 agent_working 的任务重置为 pending
+func (d *Database) RecycleTasks(dueDate string) (int64, error) {
+	query := `
+	UPDATE tasks
+	SET status = 'pending',
+		updated_at = ?
+	WHERE created_at < ?
+	  AND status = 'agent_working'
+	`
+
+	result, err := d.db.Exec(query, getCurrentTime(), dueDate)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.RowsAffected()
+}
+
 // Close 关闭数据库连接
 func (d *Database) Close() error {
 	return d.db.Close()

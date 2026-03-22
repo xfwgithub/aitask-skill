@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var version = "0.2.13"
+var version = "0.2.14"
 
 // Task 任务结构
 type Task struct {
@@ -327,6 +327,32 @@ func (s *Skill) CancelTask(input CancelTaskInput) map[string]interface{} {
 	})
 }
 
+// RecycleTasksInput 回收任务输入
+type RecycleTasksInput struct {
+	DueDate string `json:"due_date"`
+}
+
+// RecycleTasks 回收到期未完成的任务（将 pending/agent_working/agent_review 状态的任务重置为 pending）
+func (s *Skill) RecycleTasks(input RecycleTasksInput) map[string]interface{} {
+	if s.db == nil {
+		return map[string]interface{}{
+			"error": "回收任务仅支持数据库模式",
+		}
+	}
+
+	count, err := s.db.RecycleTasks(input.DueDate)
+	if err != nil {
+		return map[string]interface{}{
+			"error": fmt.Sprintf("回收任务失败：%v", err),
+		}
+	}
+
+	return map[string]interface{}{
+		"recycled": count,
+		"message":  fmt.Sprintf("已回收 %d 个到期未完成的任务", count),
+	}
+}
+
 // GetTaskDetailInput 获取任务详情输入
 type GetTaskDetailInput struct {
 	TaskUUID string `json:"task_uuid"`
@@ -529,6 +555,12 @@ func (s *Skill) RunCLI() {
 
 	case "get_dashboard_stats":
 		result = s.GetDashboardStats()
+
+	case "recycle_tasks":
+		var p RecycleTasksInput
+		jsonBytes, _ := json.Marshal(params)
+		json.Unmarshal(jsonBytes, &p)
+		result = s.RecycleTasks(p)
 
 	default:
 		result = map[string]interface{}{
