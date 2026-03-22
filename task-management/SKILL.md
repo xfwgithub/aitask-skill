@@ -5,15 +5,6 @@ version: 0.2.3
 platform: macOS (Apple Silicon)
 ---
 
-# Task Management Skill 📋
-
-零依赖、高性能的任务管理技能，使用 Go 语言实现。
-
-## 平台支持
-
-- **macOS** (Apple Silicon - ARM64) ✅
-- **版本**: 0.2.3
-
 ## 触发条件
 
 当用户提到以下关键词或意图时触发此技能：
@@ -49,11 +40,11 @@ platform: macOS (Apple Silicon)
 - `title` (string, 必需): 任务标题
 - `description` (string, 可选): 任务描述
 - `priority` (int, 可选): 优先级 1-4（1=Critical/2=High/3=Medium/4=Low），默认 3
+- `project` (string, 必需): 项目名称
 - `tags` ([]string, 可选): 标签列表
 - `assignee_name` (string, 可选): 负责人姓名
 - `agent_type` (string, 可选): Agent 类型（writer/reviewer/researcher）
 - `agent_model` (string, 可选): Agent 模型名称
-- `due_date` (string, 可选): 截止时间（ISO 8601 格式）
 
 **示例**:
 ```json
@@ -61,6 +52,7 @@ platform: macOS (Apple Silicon)
   "function": "create_task",
   "parameters": {
     "title": "审查文档",
+    "project": "aitask-skill",
     "priority": 2,
     "description": "检查完整性"
   }
@@ -73,6 +65,7 @@ platform: macOS (Apple Silicon)
 **参数**:
 - `status` (string, 可选): 状态筛选（pending/agent_working/agent_review/human_review/done/cancelled）
 - `priority` (int, 可选): 优先级筛选
+- `project` (string, 可选): 项目筛选
 - `assignee_name` (string, 可选): 负责人筛选
 - `keyword` (string, 可选): 关键词搜索
 - `limit` (int, 可选): 返回数量限制，默认 20
@@ -167,48 +160,3 @@ pending → agent_working → agent_review → human_review → done
   }
 }
 ```
-
-## 使用方式
-
-### CLI 模式（推荐）
-
-```bash
-cd task-management
-
-# 创建任务
-echo '{"function": "create_task", "parameters": {"title": "测试"}}' | ./task-skill
-
-# 查询任务
-echo '{"function": "query_tasks", "parameters": {"status": "pending"}}' | ./task-skill
-
-# 获取统计
-echo '{"function": "get_dashboard_stats"}' | ./task-skill
-```
-
-### Web 服务器模式（可选）
-
-```bash
-cd task-management
-./task-skill --server
-```
-
-访问：http://localhost:8080
-
-## 项目结构
-
-```
-task-management/
-├── main.go           # 主程序
-├── db.go             # 数据库操作
-├── server.go         # Web 服务器
-├── utils.go          # 工具函数
-├── task-skill        # 编译后的二进制
-├── templates/        # HTML 模板
-└── static/           # 静态资源
-```
-
-## 技术栈
-
-- **后端**: Go + Echo Framework
-- **数据库**: SQLite (纯 Go 实现)
-- **前端**: HTMX + 原生 JavaScript
