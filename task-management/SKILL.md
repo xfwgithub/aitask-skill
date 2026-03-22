@@ -1,7 +1,7 @@
 ---
 name: task-management
 description: 零依赖、高性能的任务管理技能。当用户需要创建、查询、更新、删除任务或获取任务统计时使用此技能。
-version: 0.1.0
+version: 0.2.3
 platform: macOS (Apple Silicon)
 ---
 
@@ -12,7 +12,7 @@ platform: macOS (Apple Silicon)
 ## 平台支持
 
 - **macOS** (Apple Silicon - ARM64) ✅
-- **版本**: 0.1.0
+- **版本**: 0.2.3
 
 ## 触发条件
 
@@ -170,38 +170,29 @@ pending → agent_working → agent_review → human_review → done
 
 ## 使用方式
 
-### 1. 启动服务
+### CLI 模式（推荐）
+
+```bash
+cd task-management
+
+# 创建任务
+echo '{"function": "create_task", "parameters": {"title": "测试"}}' | ./task-skill
+
+# 查询任务
+echo '{"function": "query_tasks", "parameters": {"status": "pending"}}' | ./task-skill
+
+# 获取统计
+echo '{"function": "get_dashboard_stats"}' | ./task-skill
+```
+
+### Web 服务器模式（可选）
 
 ```bash
 cd task-management
 ./task-skill --server
 ```
 
-### 2. Web 界面
-
 访问：http://localhost:8080
-
-### 3. API 调用
-
-```bash
-# 创建任务
-curl -X POST http://localhost:8080/api/tasks \
-  -H "Content-Type: application/json" \
-  -d '{"title": "我的任务"}'
-
-# 查询任务
-curl http://localhost:8080/api/tasks
-
-# 统计
-curl http://localhost:8080/api/stats
-```
-
-### 4. CLI 模式
-
-```bash
-cd task-management
-echo '{"function": "create_task", "parameters": {"title": "测试"}}' | ./task-skill
-```
 
 ## 项目结构
 
