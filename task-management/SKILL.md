@@ -18,7 +18,7 @@ platform: macOS (Apple Silicon)
 - "待处理的任务"、"未完成的任务"
 
 ### 更新任务
-- "更新任务"、"完成任务"、"取消任务"、"修改任务"
+- "更新任务"、"提交初审"、"取消任务"、"修改任务"
 - "标记为已完成"、"删除任务"
 
 ### 任务统计
@@ -97,7 +97,7 @@ platform: macOS (Apple Silicon)
 ```
 
 ### complete_task
-完成任务并提交审查（agent_working → agent_review）
+提交初审（agent_working → agent_review）
 
 **参数**:
 - `task_uuid` (string, 必需): 任务 UUID

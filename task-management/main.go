@@ -275,12 +275,12 @@ func (s *Skill) ClaimTask(input ClaimTaskInput) map[string]interface{} {
 	})
 }
 
-// CompleteTaskInput 完成任务输入
+// CompleteTaskInput 提交初审输入
 type CompleteTaskInput struct {
 	TaskUUID string `json:"task_uuid"`
 }
 
-// CompleteTask 完成任务并提交审查（agent_working → agent_review）
+// CompleteTask 提交初审（agent_working → agent_review）
 func (s *Skill) CompleteTask(input CompleteTaskInput) map[string]interface{} {
 	return s.UpdateTaskStatus(UpdateTaskStatusInput{
 		TaskUUID:  input.TaskUUID,
