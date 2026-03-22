@@ -223,7 +223,48 @@ CMD ["./task-skill", "--server"]
 
 ### 初始化步骤
 
-#### 1. 首次启动
+#### 方式 1：Agent 自动初始化（推荐）
+
+让 AI 助手自动完成所有配置：
+
+```bash
+# 克隆项目
+git clone https://github.com/xfwgithub/aitask-skill.git
+cd aitask-skill/task-management
+
+# 运行快速初始化脚本
+chmod +x quick-init.sh
+./quick-init.sh
+```
+
+脚本会自动：
+- ✅ 检查 Go 环境
+- ✅ 安装依赖
+- ✅ 编译程序
+- ✅ 验证功能
+- ✅ 生成配置文件
+
+**使用配置文件初始化：**
+
+AI 助手可以读取 `skill.config.json` 自动执行：
+
+```json
+{
+  "init": {
+    "script": "./quick-init.sh",
+    "commands": [
+      "go mod download",
+      "go build -o task-skill ."
+    ],
+    "verify": {
+      "command": "echo '{\"function\": \"get_dashboard_stats\"}' | ./task-skill",
+      "expect": "total"
+    }
+  }
+}
+```
+
+#### 方式 2：手动初始化
 
 ```bash
 # 克隆项目
@@ -233,7 +274,18 @@ cd aitask-skill/task-management
 # 安装依赖
 go mod download
 
+# 编译
+go build -o task-skill .
+
 # 启动服务
+./task-skill --server
+```
+
+#### 方式 3：使用启动脚本
+
+```bash
+cd task-management
+chmod +x start.sh
 ./start.sh
 ```
 
