@@ -93,6 +93,116 @@ echo '{"function": "query_tasks"}' | go run .
 - **前端**: HTMX + 原生 JavaScript
 - **样式**: 自定义 CSS
 
+## IDE 集成
+
+### VS Code
+
+**方式 1：使用 Web 界面（推荐）**
+```bash
+cd task-management
+go run .
+# 浏览器访问 http://localhost:8080
+```
+
+**方式 2：集成终端**
+在 VS Code 中打开集成终端：
+```bash
+cd task-management
+./start.sh
+```
+
+**方式 3：使用 Code Runner 插件**
+安装 Code Runner 插件，然后按 `Ctrl+Alt+N` 运行
+
+### JetBrains IDEs (GoLand, IntelliJ IDEA)
+
+**方式 1：Run Configuration**
+1. `Run` → `Edit Configurations...`
+2. 点击 `+` → `Go Build`
+3. 设置：
+   - Working directory: `task-management`
+   - Program arguments: `--server`
+   - Environment variables: `TASK_SKILL_PORT=8080`
+4. 点击 `Run`
+
+**方式 2：Go Run**
+右键点击 `main.go` → `Run 'go run main.go --server'`
+
+**方式 3：Terminal**
+在 IDE 终端中：
+```bash
+cd task-management
+go run . --server
+```
+
+### Cursor
+
+**方式 1：使用内置终端**
+```bash
+cd task-management
+./start.sh
+```
+
+**方式 2：配置 Tasks**
+创建 `.cursor/tasks.json`：
+```json
+{
+  "tasks": {
+    "start-skill": {
+      "command": "cd task-management && ./start.sh",
+      "name": "Start Task Skill"
+    }
+  }
+}
+```
+
+### Trae
+
+**方式 1：使用终端**
+```bash
+cd task-management
+./start.sh
+```
+
+**方式 2：配置运行脚本**
+在项目根目录创建 `.trae/tasks.json`：
+```json
+{
+  "tasks": {
+    "start-skill": {
+      "command": "cd task-management && ./start.sh",
+      "name": "启动任务管理技能"
+    }
+  }
+}
+```
+
+### 通用方式（任何 IDE）
+
+**1. 系统终端**
+```bash
+cd /path/to/aitask-skill/task-management
+./start.sh
+```
+
+**2. 直接运行编译后的二进制**
+```bash
+cd task-management
+go build -o task-skill .
+./task-skill --server
+```
+
+**3. 使用 Docker（可选）**
+创建 `Dockerfile`：
+```dockerfile
+FROM golang:1.21-alpine
+WORKDIR /app
+COPY task-management/ .
+RUN go mod download
+EXPOSE 8080
+CMD ["./task-skill", "--server"]
+```
+
 ## 许可证
 
 MIT License
