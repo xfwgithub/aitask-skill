@@ -15,6 +15,7 @@ type Task struct {
 	Description   string  `json:"description,omitempty"`
 	Status        string  `json:"status"`
 	Priority      int     `json:"priority"`
+	Project       *string `json:"project,omitempty"`
 	Tags          *string `json:"tags,omitempty"`
 	Assignee      *string `json:"assignee_name,omitempty"`
 	AgentType     *string `json:"agent_type,omitempty"`
@@ -51,6 +52,7 @@ type CreateTaskInput struct {
 	Title       string   `json:"title"`
 	Description string   `json:"description,omitempty"`
 	Priority    int      `json:"priority,omitempty"`
+	Project     string   `json:"project,omitempty"`
 	Tags        []string `json:"tags,omitempty"`
 	Assignee    string   `json:"assignee_name,omitempty"`
 	AgentType   string   `json:"agent_type,omitempty"`
@@ -65,12 +67,18 @@ func (s *Skill) CreateTask(input CreateTaskInput) map[string]interface{} {
 		tagsStr = strings.Join(input.Tags, ",")
 	}
 
+	var project *string
+	if input.Project != "" {
+		project = &input.Project
+	}
+
 	task := Task{
 		UUID:        uuid,
 		Title:       input.Title,
 		Description: input.Description,
 		Status:      "pending",
 		Priority:    input.Priority,
+		Project:     project,
 		Tags:        &tagsStr,
 		Assignee:    &input.Assignee,
 		AgentType:   &input.AgentType,
@@ -106,6 +114,7 @@ func (s *Skill) CreateTask(input CreateTaskInput) map[string]interface{} {
 type QueryTasksInput struct {
 	Status   string `json:"status,omitempty"`
 	Priority int    `json:"priority,omitempty"`
+	Project  string `json:"project,omitempty"`
 	Assignee string `json:"assignee_name,omitempty"`
 	Keyword  string `json:"keyword,omitempty"`
 	Limit    int    `json:"limit,omitempty"`
@@ -118,7 +127,7 @@ func (s *Skill) QueryTasks(input QueryTasksInput) map[string]interface{} {
 	// 使用数据库查询
 	if s.db != nil {
 		var err error
-		tasks, err = s.db.QueryTasks(input.Status, input.Priority, input.Assignee, input.Keyword, input.Limit)
+		tasks, err = s.db.QueryTasks(input.Status, input.Priority, input.Project, input.Assignee, input.Keyword, input.Limit)
 		if err != nil {
 			return map[string]interface{}{
 				"error": fmt.Sprintf("查询任务失败：%v", err),
@@ -160,6 +169,56 @@ type UpdateTaskStatusInput struct {
 	TaskUUID      string `json:"task_uuid"`
 	NewStatus     string `json:"new_status"`
 	ReviewComment string `json:"review_comment,omitempty"`
+}
+
+// UpdateTaskInput 更新任务输入
+type UpdateTaskInput struct {
+	TaskUUID string `json:"task_uuid"`
+	Title    string `json:"title,omitempty"`
+	Priority int    `json:"priority,omitempty"`
+	Project  string `json:"project,omitempty"`
+}
+
+// UpdateTask 更新任务
+func (s *Skill) UpdateTask(input UpdateTaskInput) map[string]interface{} {
+	// 使用数据库更新
+	if s.db != nil {
+		err := s.db.UpdateTask(input.TaskUUID, input.Title, input.Priority, input.Project)
+		if err != nil {
+			return map[string]interface{}{
+				"error": fmt.Sprintf("更新失败：%v", err),
+			}
+		}
+		return map[string]interface{}{
+			"uuid":    input.TaskUUID,
+			"message": "任务已更新",
+		}
+	}
+
+	// 内存模式（向后兼容）
+	for i, task := range s.tasks {
+		if task.UUID == input.TaskUUID {
+			if input.Title != "" {
+				s.tasks[i].Title = input.Title
+			}
+			if input.Priority > 0 {
+				s.tasks[i].Priority = input.Priority
+			}
+			if input.Project != "" {
+				s.tasks[i].Project = &input.Project
+			}
+			s.tasks[i].UpdatedAt = getCurrentTime()
+
+			return map[string]interface{}{
+				"uuid":    task.UUID,
+				"message": "任务已更新",
+			}
+		}
+	}
+
+	return map[string]interface{}{
+		"error": "任务不存在",
+	}
 }
 
 // UpdateTaskStatus 更新任务状态

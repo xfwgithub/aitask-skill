@@ -75,6 +75,7 @@ func initServer() {
 	e.GET("/tasks/:uuid", taskDetailHandler)
 	e.POST("/api/tasks", createTaskAPI)
 	e.GET("/api/tasks", queryTasksAPI)
+	e.PUT("/api/tasks/:uuid", updateTaskAPI)
 	e.PUT("/api/tasks/:uuid/status", updateTaskStatusAPI)
 	e.GET("/api/stats", getStatsAPI)
 
@@ -160,11 +161,15 @@ func createTaskAPI(c echo.Context) error {
 func queryTasksAPI(c echo.Context) error {
 	status := c.QueryParam("status")
 	priority := 0
+	if p := c.QueryParam("priority"); p != "" {
+		priority, _ = strconv.Atoi(p)
+	}
+	project := c.QueryParam("project")
 	assignee := c.QueryParam("assignee")
 	keyword := c.QueryParam("keyword")
 	limit := 20
 
-	tasks, err := database.QueryTasks(status, priority, assignee, keyword, limit)
+	tasks, err := database.QueryTasks(status, priority, project, assignee, keyword, limit)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "查询失败",
@@ -174,6 +179,32 @@ func queryTasksAPI(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"total": len(tasks),
 		"tasks": tasks,
+	})
+}
+
+func updateTaskAPI(c echo.Context) error {
+	uuid := c.Param("uuid")
+	var input struct {
+		Title    string `json:"title"`
+		Priority int    `json:"priority"`
+		Project  string `json:"project"`
+	}
+
+	if err := c.Bind(&input); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "无效的输入",
+		})
+	}
+
+	if err := database.UpdateTask(uuid, input.Title, input.Priority, input.Project); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "更新失败",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"uuid":    uuid,
+		"message": "任务已更新",
 	})
 }
 

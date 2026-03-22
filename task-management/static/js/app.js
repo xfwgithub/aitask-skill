@@ -17,6 +17,7 @@ function createTask(event) {
         title: document.getElementById('title').value,
         description: document.getElementById('description').value,
         priority: parseInt(document.getElementById('priority').value),
+        project: document.getElementById('project').value,
         assignee_name: document.getElementById('assignee').value,
         tags: document.getElementById('tags').value.split(',').map(t => t.trim()).filter(t => t)
     };

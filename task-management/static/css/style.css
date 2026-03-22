@@ -184,21 +184,21 @@ body {
 /* 仪表盘 */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 15px;
     margin-bottom: 30px;
 }
 
 .stat-card {
     background: white;
-    padding: 20px;
+    padding: 15px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     text-align: center;
 }
 
 .stat-number {
-    font-size: 36px;
+    font-size: 28px;
     font-weight: bold;
     color: #3498db;
 }
@@ -261,6 +261,11 @@ body {
 .badge-human_review {
     background: #e2d5f1;
     color: #4a3b60;
+}
+
+.badge-project {
+    background: #d4edda;
+    color: #155724;
 }
 
 .badge-done {

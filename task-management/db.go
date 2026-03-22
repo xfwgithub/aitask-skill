@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"strings"
 	"time"
 
 	_ "modernc.org/sqlite"
@@ -20,12 +21,64 @@ func NewDatabase(dbPath string) (*Database, error) {
 	}
 
 	database := &Database{db: db}
-	err = database.initTables()
+	err = database.migrate()
 	if err != nil {
 		return nil, err
 	}
 
 	return database, nil
+}
+
+// migrate 数据库迁移
+func (d *Database) migrate() error {
+	// 检查 project 列是否存在
+	var count int
+	err := d.db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('tasks') WHERE name='project'`).Scan(&count)
+	if err != nil {
+		return err
+	}
+
+	// 如果不存在，添加 project 列
+	if count == 0 {
+		_, err = d.db.Exec(`ALTER TABLE tasks ADD COLUMN project TEXT`)
+		if err != nil {
+			return err
+		}
+	}
+
+	// 检查 review_comment 列是否存在
+	err = d.db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('tasks') WHERE name='review_comment'`).Scan(&count)
+	if err != nil {
+		return err
+	}
+
+	// 如果不存在，添加 review_comment 列
+	if count == 0 {
+		_, err = d.db.Exec(`ALTER TABLE tasks ADD COLUMN review_comment TEXT`)
+		if err != nil {
+			return err
+		}
+	}
+
+	// 创建索引
+	_, err = d.db.Exec(`CREATE INDEX IF NOT EXISTS idx_status ON tasks(status)`)
+	if err != nil {
+		return err
+	}
+	_, err = d.db.Exec(`CREATE INDEX IF NOT EXISTS idx_priority ON tasks(priority)`)
+	if err != nil {
+		return err
+	}
+	_, err = d.db.Exec(`CREATE INDEX IF NOT EXISTS idx_assignee ON tasks(assignee_name)`)
+	if err != nil {
+		return err
+	}
+	_, err = d.db.Exec(`CREATE INDEX IF NOT EXISTS idx_project ON tasks(project)`)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // initTables 初始化数据库表
@@ -38,6 +91,7 @@ func (d *Database) initTables() error {
 		description TEXT,
 		status TEXT DEFAULT 'pending',
 		priority INTEGER DEFAULT 3,
+		project TEXT,
 		tags TEXT,
 		assignee_name TEXT,
 		agent_type TEXT,
@@ -50,6 +104,7 @@ func (d *Database) initTables() error {
 	CREATE INDEX IF NOT EXISTS idx_status ON tasks(status);
 	CREATE INDEX IF NOT EXISTS idx_priority ON tasks(priority);
 	CREATE INDEX IF NOT EXISTS idx_assignee ON tasks(assignee_name);
+	CREATE INDEX IF NOT EXISTS idx_project ON tasks(project);
 	`
 
 	_, err := d.db.Exec(query)
@@ -83,7 +138,7 @@ func (d *Database) CreateTask(task Task) error {
 // GetTaskByUUID 根据 UUID 获取任务
 func (d *Database) GetTaskByUUID(uuid string) (*Task, error) {
 	query := `
-	SELECT id, uuid, title, description, status, priority, tags, assignee_name, agent_type, agent_model, review_comment, created_at, updated_at
+	SELECT id, uuid, title, description, status, priority, project, tags, assignee_name, agent_type, agent_model, review_comment, created_at, updated_at
 	FROM tasks
 	WHERE uuid = ?
 	`
@@ -96,6 +151,7 @@ func (d *Database) GetTaskByUUID(uuid string) (*Task, error) {
 		&task.Description,
 		&task.Status,
 		&task.Priority,
+		&task.Project,
 		&task.Tags,
 		&task.Assignee,
 		&task.AgentType,
@@ -113,9 +169,9 @@ func (d *Database) GetTaskByUUID(uuid string) (*Task, error) {
 }
 
 // QueryTasks 查询任务
-func (d *Database) QueryTasks(status string, priority int, assignee string, keyword string, limit int) ([]Task, error) {
+func (d *Database) QueryTasks(status string, priority int, project string, assignee string, keyword string, limit int) ([]Task, error) {
 	query := `
-	SELECT id, uuid, title, description, status, priority, tags, assignee_name, agent_type, agent_model, review_comment, created_at, updated_at
+	SELECT id, uuid, title, description, status, priority, project, tags, assignee_name, agent_type, agent_model, review_comment, created_at, updated_at
 	FROM tasks
 	WHERE 1=1
 	`
@@ -130,6 +186,11 @@ func (d *Database) QueryTasks(status string, priority int, assignee string, keyw
 	if priority != 0 {
 		query += " AND priority = ?"
 		args = append(args, priority)
+	}
+
+	if project != "" {
+		query += " AND project = ?"
+		args = append(args, project)
 	}
 
 	if assignee != "" {
@@ -165,6 +226,7 @@ func (d *Database) QueryTasks(status string, priority int, assignee string, keyw
 			&task.Description,
 			&task.Status,
 			&task.Priority,
+			&task.Project,
 			&task.Tags,
 			&task.Assignee,
 			&task.AgentType,
@@ -203,6 +265,42 @@ func (d *Database) UpdateTaskStatusWithComment(uuid string, newStatus string, co
 	`
 
 	_, err := d.db.Exec(query, newStatus, comment, time.Now().Format(time.RFC3339), uuid)
+	return err
+}
+
+// UpdateTask 更新任务信息
+func (d *Database) UpdateTask(uuid string, title string, priority int, project string) error {
+	updates := []string{}
+	args := []interface{}{}
+
+	if title != "" {
+		updates = append(updates, "title = ?")
+		args = append(args, title)
+	}
+	if priority > 0 {
+		updates = append(updates, "priority = ?")
+		args = append(args, priority)
+	}
+	if project != "" {
+		updates = append(updates, "project = ?")
+		args = append(args, project)
+	}
+
+	if len(updates) == 0 {
+		return nil
+	}
+
+	updates = append(updates, "updated_at = ?")
+	args = append(args, time.Now().Format(time.RFC3339))
+	args = append(args, uuid)
+
+	query := `
+	UPDATE tasks
+	SET ` + strings.Join(updates, ", ") + `
+	WHERE uuid = ?
+	`
+
+	_, err := d.db.Exec(query, args...)
 	return err
 }
 

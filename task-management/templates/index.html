@@ -63,10 +63,11 @@ fetch('/api/tasks?limit=5')
             return;
         }
         
-        container.innerHTML = '<table class="table"><thead><tr><th>标题</th><th>状态</th><th>优先级</th><th>负责人</th><th>创建时间</th></tr></thead><tbody>' +
+        container.innerHTML = '<table class="table"><thead><tr><th>标题</th><th>项目</th><th>状态</th><th>优先级</th><th>负责人</th><th>创建时间</th></tr></thead><tbody>' +
             data.tasks.map(task => `
                 <tr>
                     <td><a href="/tasks/${task.uuid}">${escapeHtml(task.title)}</a></td>
+                    <td>${task.project ? `<span class="badge badge-project">${escapeHtml(task.project)}</span>` : '-'}</td>
                     <td><span class="badge badge-${task.status}">${task.status}</span></td>
                     <td>P${task.priority}</td>
                     <td>${task.assignee_name || '-'}</td>

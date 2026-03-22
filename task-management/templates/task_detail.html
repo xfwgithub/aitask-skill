@@ -11,6 +11,9 @@
             <span class="badge badge-{{.Status}}">{{.Status}}</span>
         </div>
         <div class="info-row">
+            <strong>项目:</strong> {{if .Project}}<span class="badge badge-project">{{.Project}}</span>{{else}}-{{end}}
+        </div>
+        <div class="info-row">
             <strong>优先级:</strong> P{{.Priority}}
         </div>
         <div class="info-row">
