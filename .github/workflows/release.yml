@@ -40,48 +40,32 @@ jobs:
           go mod download
           go mod verify
       
-      - name: Build for macOS Intel
-        working-directory: ./task-management
-        run: GOOS=darwin GOARCH=amd64 go build -v -o task-skill-darwin-amd64 .
-      
       - name: Build for macOS Apple Silicon
         working-directory: ./task-management
-        run: GOOS=darwin GOARCH=arm64 go build -v -o task-skill-darwin-arm64 .
+        run: GOOS=darwin GOARCH=arm64 go build -v -o task-skill .
       
       - name: Create Release Assets
         run: |
           cd task-management
           
-          # 创建 Intel 版本完整包
-          mkdir -p task-skill-darwin-amd64-v${{ github.ref_name }}
-          cp task-skill-darwin-amd64 task-skill-darwin-amd64-v${{ github.ref_name }}/task-skill
-          cp -r templates static SKILL.md task-skill-darwin-amd64-v${{ github.ref_name }}/
-          zip -r task-skill-darwin-amd64-v${{ github.ref_name }}.zip task-skill-darwin-amd64-v${{ github.ref_name }}/
-          
-          # 创建 ARM64 版本完整包
-          mkdir -p task-skill-darwin-arm64-v${{ github.ref_name }}
-          cp task-skill-darwin-arm64 task-skill-darwin-arm64-v${{ github.ref_name }}/task-skill
-          cp -r templates static SKILL.md task-skill-darwin-arm64-v${{ github.ref_name }}/
-          zip -r task-skill-darwin-arm64-v${{ github.ref_name }}.zip task-skill-darwin-arm64-v${{ github.ref_name }}/
+          # 创建完整包
+          mkdir -p task-skill-v${{ github.ref_name }}
+          cp task-skill task-skill-v${{ github.ref_name }}/
+          cp -r templates static SKILL.md task-skill-v${{ github.ref_name }}/
+          zip -r task-skill-v${{ github.ref_name }}.zip task-skill-v${{ github.ref_name }}/
           
           # 创建校验和
-          shasum -a 256 task-skill-darwin-amd64 > task-skill-darwin-amd64.sha256
-          shasum -a 256 task-skill-darwin-arm64 > task-skill-darwin-arm64.sha256
-          shasum -a 256 task-skill-darwin-amd64-v${{ github.ref_name }}.zip > task-skill-darwin-amd64-v${{ github.ref_name }}.zip.sha256
-          shasum -a 256 task-skill-darwin-arm64-v${{ github.ref_name }}.zip > task-skill-darwin-arm64-v${{ github.ref_name }}.zip.sha256
+          shasum -a 256 task-skill > task-skill.sha256
+          shasum -a 256 task-skill-v${{ github.ref_name }}.zip > task-skill-v${{ github.ref_name }}.zip.sha256
       
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            task-management/task-skill-darwin-amd64
-            task-management/task-skill-darwin-arm64
-            task-management/task-skill-darwin-amd64.sha256
-            task-management/task-skill-darwin-arm64.sha256
-            task-management/task-skill-darwin-amd64-v${{ github.ref_name }}.zip
-            task-management/task-skill-darwin-arm64-v${{ github.ref_name }}.zip
-            task-management/task-skill-darwin-amd64-v${{ github.ref_name }}.zip.sha256
-            task-management/task-skill-darwin-arm64-v${{ github.ref_name }}.zip.sha256
+            task-management/task-skill
+            task-management/task-skill.sha256
+            task-management/task-skill-v${{ github.ref_name }}.zip
+            task-management/task-skill-v${{ github.ref_name }}.zip.sha256
           name: Release ${{ github.ref_name }}
           body: |
             ## 更新内容
@@ -94,11 +78,22 @@ jobs:
             ## 下载说明
             
             **推荐使用完整包（包含 Web 界面资源）**：
-            - `task-skill-darwin-amd64-v${{ github.ref_name }}.zip` - Intel Mac
-            - `task-skill-darwin-arm64-v${{ github.ref_name }}.zip` - Apple Silicon Mac
+            - `task-skill-v${{ github.ref_name }}.zip` - Apple Silicon Mac (ARM64)
             
             **纯二进制文件**（仅命令行使用）：
-            - `task-skill-darwin-amd64` / `task-skill-darwin-arm64`
+            - `task-skill` - Apple Silicon Mac (ARM64)
+            
+            ## 安装方法
+            
+            ```bash
+            # 下载并解压
+            unzip task-skill-v${{ github.ref_name }}.zip
+            mv task-skill-v${{ github.ref_name }} ~/.agents/skills/task-management
+            
+            # 运行
+            cd ~/.agents/skills/task-management
+            ./task-skill --server
+            ```
           draft: false
           prerelease: true
           fail_on_unmatched_files: false

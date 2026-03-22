@@ -16,17 +16,11 @@
 # 从 GitHub Release 下载完整包（包含 Web 界面资源）
 # https://github.com/xfwgithub/aitask-skill/releases
 
-# 下载对应平台的 zip 文件
-# - task-skill-darwin-amd64-v0.2.1.zip (Intel Mac)
-# - task-skill-darwin-arm64-v0.2.1.zip (Apple Silicon Mac)
+# 下载 zip 文件：task-skill-v0.2.1.zip
 
 # 解压到技能目录
-unzip task-skill-darwin-arm64-v0.2.1.zip -d ~/.agents/skills/
-# 或者
-unzip task-skill-darwin-amd64-v0.2.1.zip -d ~/.agents/skills/
-
-# 重命名为 task-management
-mv ~/.agents/skills/task-skill-darwin-*-v0.2.1 ~/.agents/skills/task-management
+unzip task-skill-v0.2.1.zip -d ~/.agents/skills/
+mv ~/.agents/skills/task-skill-v0.2.1 ~/.agents/skills/task-management
 
 # 或者从源码安装（开发用）
 cp -r ~/github/aitask-skill/task-management ~/.agents/skills/task-management
