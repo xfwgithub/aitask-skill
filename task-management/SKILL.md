@@ -32,6 +32,11 @@ platform: macOS (Apple Silicon)
 ### 回收任务
 - "回收任务"、"任务到期"、"重置任务状态"
 
+### 更新技能
+- "更新技能"、"升级技能"、"检查更新"
+
+**注意**: 技能更新应通过下载 GitHub Release 的最新版本完成，不应使用 git pull 源码。
+
 ## 工具函数
 
 ### create_task
@@ -223,4 +228,17 @@ platform: macOS (Apple Silicon)
     "due_date": "2026-03-22"
   }
 }
+
+## 更新技能说明
+
+当用户要求更新技能时：
+
+1. **不要**使用 `git pull` 拉取源码
+2. **正确方式**：
+   - 访问 https://github.com/xfwgithub/aitask-skill/releases
+   - 下载最新版本的 `task-skill-vX.Y.Z.zip`
+   - 解压并替换现有技能目录中的文件
+   - 重启服务（如果使用 `--server` 模式）
+
+3. 更新前可以使用 `get_version` 检查当前版本
 ```
