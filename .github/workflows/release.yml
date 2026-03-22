@@ -49,14 +49,14 @@ jobs:
           cd task-management
           
           # 创建完整包
-          mkdir -p task-skill-v${{ github.ref_name }}
-          cp task-skill task-skill-v${{ github.ref_name }}/
-          cp -r templates static SKILL.md task-skill-v${{ github.ref_name }}/
-          zip -r task-skill-v${{ github.ref_name }}.zip task-skill-v${{ github.ref_name }}/
+          mkdir -p task-skill-${{ github.ref_name }}
+          cp task-skill task-skill-${{ github.ref_name }}/
+          cp -r templates static SKILL.md task-skill-${{ github.ref_name }}/
+          zip -r task-skill-${{ github.ref_name }}.zip task-skill-${{ github.ref_name }}/
           
           # 创建校验和
           shasum -a 256 task-skill > task-skill.sha256
-          shasum -a 256 task-skill-v${{ github.ref_name }}.zip > task-skill-v${{ github.ref_name }}.zip.sha256
+          shasum -a 256 task-skill-${{ github.ref_name }}.zip > task-skill-${{ github.ref_name }}.zip.sha256
       
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -64,8 +64,8 @@ jobs:
           files: |
             task-management/task-skill
             task-management/task-skill.sha256
-            task-management/task-skill-v${{ github.ref_name }}.zip
-            task-management/task-skill-v${{ github.ref_name }}.zip.sha256
+            task-management/task-skill-${{ github.ref_name }}.zip
+            task-management/task-skill-${{ github.ref_name }}.zip.sha256
           name: Release ${{ github.ref_name }}
           body: |
             ## 更新内容
@@ -78,7 +78,7 @@ jobs:
             ## 下载说明
             
             **推荐使用完整包（包含 Web 界面资源）**：
-            - `task-skill-v${{ github.ref_name }}.zip` - Apple Silicon Mac (ARM64)
+            - `task-skill-${{ github.ref_name }}.zip` - Apple Silicon Mac (ARM64)
             
             **纯二进制文件**（仅命令行使用）：
             - `task-skill` - Apple Silicon Mac (ARM64)
@@ -87,8 +87,8 @@ jobs:
             
             ```bash
             # 下载并解压
-            unzip task-skill-v${{ github.ref_name }}.zip
-            mv task-skill-v${{ github.ref_name }} ~/.agents/skills/task-management
+            unzip task-skill-${{ github.ref_name }}.zip
+            mv task-skill-${{ github.ref_name }} ~/.agents/skills/task-management
             
             # 运行
             cd ~/.agents/skills/task-management
