@@ -5,6 +5,46 @@ version: 0.2.10
 platform: macOS (Apple Silicon)
 ---
 
+## ⚠️ 重要：执行方式
+
+**本技能通过 CLI 模式运行，Agent 通过标准输入/输出 (stdin/stdout) 与技能交互。**
+
+### 如何调用技能
+
+当触发技能时，系统会自动执行：
+```bash
+echo '{"function": "函数名", "parameters": {...}}' | ./task-skill
+```
+
+**示例**：
+```bash
+# 查询待办任务
+echo '{"function": "query_tasks", "parameters": {"status": "pending"}}' | ./task-skill
+
+# 创建任务
+echo '{"function": "create_task", "parameters": {"title": "审查文档", "project": "aitask-skill"}}' | ./task-skill
+```
+
+### ⛔ 不要这样做
+
+**错误**：使用 curl 调用 API
+```bash
+curl http://localhost:8080/api/tasks  # ❌ 错误！
+```
+
+**错误**：先启动服务器再调用
+```bash
+./task-skill --server  # ❌ 不需要！
+```
+
+### ℹ️ 关于 --server 模式
+
+`./task-skill --server` 仅用于启动 **Web UI 前端**（供人类使用），与 Agent 调用技能无关。
+
+Agent 应该直接通过 CLI (stdin/stdout) 调用技能，不需要启动服务器。
+
+---
+
 ## 触发条件
 
 当用户提到以下关键词或意图时触发此技能：
@@ -229,6 +269,36 @@ platform: macOS (Apple Silicon)
   }
 }
 
+## 执行方式
+
+**重要**：本技能通过 **CLI 模式** 运行，Agent 通过标准输入/输出 (stdin/stdout) 与技能交互。
+
+### 调用示例
+
+```bash
+# 查询待办任务
+echo '{"function": "query_tasks", "parameters": {"status": "pending"}}' | ./task-skill
+
+# 创建任务
+echo '{"function": "create_task", "parameters": {"title": "审查文档", "project": "aitask-skill"}}' | ./task-skill
+
+# 领取任务
+echo '{"function": "claim_task", "parameters": {"task_uuid": "abc-123"}}' | ./task-skill
+
+# 提交初审
+echo '{"function": "submit_initial_review", "parameters": {"task_uuid": "abc-123"}}' | ./task-skill
+
+# 获取版本
+echo '{"function": "get_version"}' | ./task-skill
+```
+
+**重要提示**：
+- ✅ **正确方式**：通过 CLI (stdin/stdout) 调用
+- ❌ **错误方式**：使用 curl 调用 HTTP API
+- ❌ **错误方式**：启动 --server 服务后通过 API 调用
+
+Agent 应该直接将 JSON 发送到技能的 stdin，然后从 stdout 读取结果。
+
 ## 安装路径
 
 技能应安装在以下位置：
@@ -237,18 +307,31 @@ platform: macOS (Apple Silicon)
 
 ## 初始化
 
-首次使用或数据库损坏时：
+首次使用或数据库不存在时：
 
 ```bash
 # 1. 确保在正确的目录
 cd ~/.agents/skills/task-management
 
-# 2. 启动服务会自动初始化数据库
+# 2. 验证安装
+./task-skill --version
+
+# 3. 测试技能（会自动创建数据库）
+echo '{"function": "get_version"}' | ./task-skill
+```
+
+## Web UI（可选）
+
+如果需要 Web 界面管理任务，可以单独启动服务器：
+
+```bash
+# 启动 Web 服务器（仅用于 Web UI，非必需）
 ./task-skill --server
 
-# 或在后台运行
-./task-skill --server &
+# 访问 http://localhost:8080
 ```
+
+**注意**：Web UI 是可选的，Agent 调用技能不需要启动服务器。
 
 ## 更新技能说明
 
