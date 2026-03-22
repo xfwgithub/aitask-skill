@@ -120,8 +120,8 @@ func (d *Database) initTables() error {
 // CreateTask 创建任务
 func (d *Database) CreateTask(task Task) error {
 	query := `
-	INSERT INTO tasks (uuid, title, description, status, priority, tags, assignee_name, agent_type, agent_model, created_at, updated_at)
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	INSERT INTO tasks (uuid, title, description, status, priority, project, tags, assignee_name, agent_type, agent_model, created_at, updated_at)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
 	_, err := d.db.Exec(query,
@@ -130,6 +130,7 @@ func (d *Database) CreateTask(task Task) error {
 		task.Description,
 		task.Status,
 		task.Priority,
+		task.Project,
 		task.Tags,
 		task.Assignee,
 		task.AgentType,

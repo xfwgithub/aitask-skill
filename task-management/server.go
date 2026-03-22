@@ -122,6 +122,9 @@ func createTaskAPI(c echo.Context) error {
 		})
 	}
 
+	input.Title = strings.TrimSpace(input.Title)
+	input.Project = strings.TrimSpace(input.Project)
+
 	if input.Title == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "标题不能为空",
@@ -140,6 +143,7 @@ func createTaskAPI(c echo.Context) error {
 
 	uuid := uuid.New().String()
 	tagsStr := strings.Join(input.Tags, ",")
+	project := input.Project
 
 	task := Task{
 		UUID:        uuid,
@@ -147,6 +151,7 @@ func createTaskAPI(c echo.Context) error {
 		Description: input.Description,
 		Status:      "pending",
 		Priority:    input.Priority,
+		Project:     &project,
 		Tags:        &tagsStr,
 		Assignee:    &input.Assignee,
 		AgentType:   &input.AgentType,

@@ -12,17 +12,17 @@
 
 ```bash
 # 下载最新版本
-curl -L -o /tmp/task-skill-v0.2.14.zip https://github.com/xfwgithub/aitask-skill/releases/download/v0.2.14/task-skill-v0.2.14.zip
+curl -L -o /tmp/task-skill-v0.2.15.zip https://github.com/xfwgithub/aitask-skill/releases/download/v0.2.15/task-skill-v0.2.15.zip
 
 # 解压
-unzip /tmp/task-skill-v0.2.14.zip -d /tmp/
+unzip /tmp/task-skill-v0.2.15.zip -d /tmp/
 
 # 移动到技能目录
 mkdir -p ~/.agents/skills
-mv /tmp/task-skill-v0.2.14 ~/.agents/skills/task-management
+mv /tmp/task-skill-v0.2.15 ~/.agents/skills/task-management
 
 # 清理
-rm /tmp/task-skill-v0.2.14.zip
+rm /tmp/task-skill-v0.2.15.zip
 ```
 
 ### 方式 2：手动下载

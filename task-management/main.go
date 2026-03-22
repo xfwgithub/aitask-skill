@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var version = "0.2.14"
+var version = "0.2.15"
 
 // Task 任务结构
 type Task struct {
@@ -63,6 +63,22 @@ type CreateTaskInput struct {
 
 // CreateTask 创建任务
 func (s *Skill) CreateTask(input CreateTaskInput) map[string]interface{} {
+	input.Title = strings.TrimSpace(input.Title)
+	input.Project = strings.TrimSpace(input.Project)
+	if input.Title == "" {
+		return map[string]interface{}{
+			"error": "标题不能为空",
+		}
+	}
+	if input.Project == "" {
+		return map[string]interface{}{
+			"error": "项目不能为空",
+		}
+	}
+	if input.Priority == 0 {
+		input.Priority = 3
+	}
+
 	uuid := generateUUID()
 	tagsStr := ""
 	if len(input.Tags) > 0 {

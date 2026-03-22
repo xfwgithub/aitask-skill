@@ -1,7 +1,7 @@
 ---
 name: task-management
 description: 零依赖、高性能的任务管理技能。当用户需要创建、查询、更新、删除任务或获取任务统计时使用此技能。
-version: 0.2.14
+version: 0.2.15
 platform: macOS (Apple Silicon)
 ---
 
