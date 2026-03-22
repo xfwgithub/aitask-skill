@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build for macOS
@@ -53,15 +56,21 @@ jobs:
           shasum -a 256 task-skill-darwin-arm64 > task-skill-darwin-arm64.sha256
       
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             task-management/task-skill-darwin-amd64
             task-management/task-skill-darwin-arm64
             task-management/task-skill-darwin-amd64.sha256
             task-management/task-skill-darwin-arm64.sha256
-          generate_release_notes: true
+          name: Release ${{ github.ref_name }}
+          body: |
+            ## 更新内容
+            - 完善任务状态系统
+            - 添加审核意见功能
+            - 优化 Web 界面
           draft: false
           prerelease: true
+          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
