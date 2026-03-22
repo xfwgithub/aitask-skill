@@ -494,7 +494,7 @@ func (s *Skill) RunCLI() {
 		json.Unmarshal(jsonBytes, &p)
 		result = s.ClaimTask(p)
 
-	case "complete_task":
+	case "submit_initial_review":
 		var p CompleteTaskInput
 		jsonBytes, _ := json.Marshal(params)
 		json.Unmarshal(jsonBytes, &p)

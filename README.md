@@ -53,7 +53,7 @@ pending → agent_working → agent_review → human_review → done
 
 ### 原子化操作
 - `claim_task` - 领取任务
-- `complete_task` - 提交初审
+- `submit_initial_review` - 提交初审
 - `review_task` - 提交人工审核
 - `approve_task` - 审核通过
 - `cancel_task` - 取消任务
