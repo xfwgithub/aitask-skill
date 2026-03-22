@@ -8,7 +8,26 @@
 
 ## 安装
 
-访问 [GitHub Releases](https://github.com/xfwgithub/aitask-skill/releases) 下载最新版本，解压到合适的位置。
+### 方式 1：下载 Release（推荐）
+
+```bash
+# 下载最新版本（以 v0.2.8 为例）
+curl -L -o /tmp/task-skill-v0.2.8.zip https://github.com/xfwgithub/aitask-skill/releases/download/v0.2.8/task-skill-v0.2.8.zip
+
+# 解压
+unzip /tmp/task-skill-v0.2.8.zip -d /tmp/
+
+# 移动到技能目录
+mkdir -p ~/.agents/skills
+mv /tmp/task-skill-v0.2.8 ~/.agents/skills/task-management
+
+# 清理
+rm /tmp/task-skill-v0.2.8.zip
+```
+
+### 方式 2：手动下载
+
+访问 [GitHub Releases](https://github.com/xfwgithub/aitask-skill/releases) 下载 `task-skill-vX.Y.Z.zip`，解压到 `~/.agents/skills/task-management`。
 
 ## 使用方式
 
