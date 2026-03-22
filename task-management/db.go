@@ -31,9 +31,15 @@ func NewDatabase(dbPath string) (*Database, error) {
 
 // migrate 数据库迁移
 func (d *Database) migrate() error {
+	// 先初始化表（如果不存在）
+	err := d.initTables()
+	if err != nil {
+		return err
+	}
+
 	// 检查 project 列是否存在
 	var count int
-	err := d.db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('tasks') WHERE name='project'`).Scan(&count)
+	err = d.db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('tasks') WHERE name='project'`).Scan(&count)
 	if err != nil {
 		return err
 	}
