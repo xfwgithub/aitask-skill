@@ -35,7 +35,7 @@ func initServer() {
 
 	// 初始化数据库
 	var err error
-	database, err = NewDatabase("tasks.db")
+	database, err = NewDatabase(getDatabasePath())
 	if err != nil {
 		fmt.Printf("数据库初始化失败：%v\n", err)
 		os.Exit(1)

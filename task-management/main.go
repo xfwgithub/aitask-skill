@@ -674,7 +674,7 @@ func main() {
 	}
 
 	// 初始化数据库
-	db, err := NewDatabase("tasks.db")
+	db, err := NewDatabase(getDatabasePath())
 	if err != nil {
 		fmt.Printf(`{"error": "数据库连接失败：%v"}`, err)
 		return

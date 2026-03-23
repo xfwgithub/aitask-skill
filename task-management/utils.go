@@ -2,10 +2,40 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+// getDatabasePath 获取数据库文件路径
+// 优先使用环境变量 TASK_SKILL_DB_PATH
+// 否则使用 ~/.task-skill/tasks.db
+func getDatabasePath() string {
+	// 检查环境变量
+	if dbPath := os.Getenv("TASK_SKILL_DB_PATH"); dbPath != "" {
+		return dbPath
+	}
+
+	// 默认路径：~/.task-skill/tasks.db
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		// 如果无法获取主目录，回退到当前目录
+		return "tasks.db"
+	}
+
+	dbDir := filepath.Join(homeDir, ".task-skill")
+	dbPath := filepath.Join(dbDir, "tasks.db")
+
+	// 确保目录存在
+	if err := os.MkdirAll(dbDir, 0755); err != nil {
+		// 如果创建目录失败，回退到当前目录
+		return "tasks.db"
+	}
+
+	return dbPath
+}
 
 // generateUUID 生成 UUID
 func generateUUID() string {
