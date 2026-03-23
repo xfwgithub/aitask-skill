@@ -102,6 +102,7 @@ def download_binary():
         # Download the zip file
         import tempfile
         import zipfile
+        import shutil
         
         with tempfile.NamedTemporaryFile(suffix='.zip', delete=False) as tmp_file:
             tmp_zip_path = Path(tmp_file.name)
@@ -110,10 +111,32 @@ def download_binary():
         
         print(f"✓ Package downloaded ({tmp_zip_path.stat().st_size:,} bytes)", file=sys.stderr)
         
-        # Extract to package directory
-        with zipfile.ZipFile(str(tmp_zip_path), 'r') as zip_ref:
-            # Extract all files to package directory
-            zip_ref.extractall(str(package_dir))
+        # Extract to temp directory first
+        with tempfile.TemporaryDirectory() as tmp_extract_dir:
+            with zipfile.ZipFile(str(tmp_zip_path), 'r') as zip_ref:
+                zip_ref.extractall(tmp_extract_dir)
+            
+            # The zip contains a parent directory (task-skill-vX.X.X/)
+            # Find and copy its contents to package_dir
+            extracted_dirs = list(Path(tmp_extract_dir).iterdir())
+            if not extracted_dirs:
+                raise Exception("No directories found in zip")
+            
+            source_dir = extracted_dirs[0]  # task-skill-vX.X.X/
+            
+            # Copy all files to package directory
+            for item in source_dir.iterdir():
+                dest = package_dir / item.name
+                if dest.exists():
+                    if dest.is_dir():
+                        shutil.rmtree(dest)
+                    else:
+                        dest.unlink()
+                
+                if item.is_dir():
+                    shutil.copytree(item, dest)
+                else:
+                    shutil.copy2(item, dest)
         
         # Clean up temp file
         tmp_zip_path.unlink()
