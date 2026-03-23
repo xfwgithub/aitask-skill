@@ -162,12 +162,22 @@ def main():
     if not binary_path:
         binary_path = download_binary()
     
+    # Check if we need to run in server mode
+    server_mode = "--server" in sys.argv[1:]
+    
+    # For server mode, change working directory to package directory
+    # so Go binary can find templates/ and static/ directories
+    cwd = None
+    if server_mode:
+        cwd = str(Path(binary_path).parent)
+    
     # Pass all arguments to the Go binary
     try:
         result = subprocess.run(
             [binary_path] + sys.argv[1:],
             capture_output=True,
-            text=True
+            text=True,
+            cwd=cwd
         )
         
         # Print stdout (JSON output from Go binary)
