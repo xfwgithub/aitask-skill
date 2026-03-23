@@ -23,7 +23,7 @@ URL = "https://github.com/xfwgithub/aitask-skill"
 
 # Go binary configuration
 GO_BINARY_NAME = "task-skill"
-GO_SOURCE_DIR = "task-management"
+GO_SOURCE_DIR = "skills/task-management"
 
 
 class BuildGoBinary:
@@ -114,7 +114,7 @@ class CustomInstallCommand(install):
         print("Building Task Management Skill (Go binary)...")
         print("="*60)
         
-        # Find source directory
+        # Find the source directory
         source_dir = Path(__file__).parent / GO_SOURCE_DIR
         
         try:
