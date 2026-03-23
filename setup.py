@@ -106,7 +106,7 @@ class CustomInstallCommand(install):
     """Custom install command that builds Go binary"""
     
     def run(self):
-        # Run standard install
+        # Run standard install (this copies Python files and handles data files)
         install.run(self)
         
         # Build Go binary
@@ -122,7 +122,8 @@ class CustomInstallCommand(install):
             BuildGoBinary.build_go_binary(source_dir, source_dir)
             
             # Copy to installation scripts directory
-            scripts_dir = Path(self.install_scripts)
+            # install_scripts is where console_scripts are installed (bin directory)
+            scripts_dir = Path(self.install_scripts) if self.install_scripts else Path(sys.prefix) / "bin"
             scripts_dir.mkdir(parents=True, exist_ok=True)
             
             binary_src = source_dir / GO_BINARY_NAME
@@ -133,6 +134,7 @@ class CustomInstallCommand(install):
             binary_dst.chmod(0o755)
             
             print(f"\n✓ Task-skill installed to: {binary_dst}")
+            print(f"✓ File size: {binary_dst.stat().st_size:,} bytes")
             print(f"✓ You can now use 'task-skill' command\n")
         except RuntimeError as e:
             print(f"\n✗ Build failed: {e}")
