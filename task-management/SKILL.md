@@ -1,7 +1,7 @@
 ---
 name: task-management
 description: 零依赖、高性能的任务管理技能。当用户需要创建、查询、更新、删除任务或获取任务统计时使用此技能。
-version: 0.3.0
+version: 0.3.1
 platform: macOS (Apple Silicon)
 ---
 
@@ -31,6 +31,9 @@ platform: macOS (Apple Silicon)
 
 ### 回收任务
 - "回收任务"、"任务到期"、"重置任务状态"
+
+### 删除任务
+- "彻底删除"、"物理删除"、"删除任务"
 
 ### 更新技能
 - "更新技能"、"升级技能"、"检查更新"
@@ -179,6 +182,19 @@ echo '{"function": "get_dashboard_stats"}' | ./task-skill
 **调用示例**:
 ```bash
 echo '{"function": "recycle_tasks", "parameters": {"due_date": "2026-03-22"}}' | ./task-skill
+```
+
+### delete_task
+物理删除任务（彻底删除）
+
+**注意**: 此操作不可恢复，请谨慎使用！建议先使用 `cancel_task` 将任务状态改为 cancelled（取消），确认不再需要后再使用此功能彻底删除。
+
+**参数**:
+- `task_uuid` (string, 必需): 任务 UUID
+
+**调用示例**:
+```bash
+echo '{"function": "delete_task", "parameters": {"task_uuid": "abc-123"}}' | ./task-skill
 ```
 
 ## 初始化

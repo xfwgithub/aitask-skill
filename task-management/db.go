@@ -409,6 +409,17 @@ func (d *Database) RecycleTasks(dueDate string) (int64, error) {
 	return result.RowsAffected()
 }
 
+// DeleteTask 物理删除任务
+func (d *Database) DeleteTask(uuid string) error {
+	query := `
+	DELETE FROM tasks
+	WHERE uuid = ?
+	`
+
+	_, err := d.db.Exec(query, uuid)
+	return err
+}
+
 // Close 关闭数据库连接
 func (d *Database) Close() error {
 	return d.db.Close()

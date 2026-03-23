@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var version = "0.3.0"
+var version = "0.3.1"
 
 // Task 任务结构
 type Task struct {
@@ -410,6 +410,32 @@ func (s *Skill) RecycleTasks(input RecycleTasksInput) map[string]interface{} {
 	}
 }
 
+// DeleteTaskInput 删除任务输入
+type DeleteTaskInput struct {
+	TaskUUID string `json:"task_uuid"`
+}
+
+// DeleteTask 物理删除任务（彻底删除）
+func (s *Skill) DeleteTask(input DeleteTaskInput) map[string]interface{} {
+	if s.db == nil {
+		return map[string]interface{}{
+			"error": "删除任务仅支持数据库模式",
+		}
+	}
+
+	err := s.db.DeleteTask(input.TaskUUID)
+	if err != nil {
+		return map[string]interface{}{
+			"error": fmt.Sprintf("删除任务失败：%v", err),
+		}
+	}
+
+	return map[string]interface{}{
+		"uuid":    input.TaskUUID,
+		"message": "任务已彻底删除",
+	}
+}
+
 // GetTaskDetailInput 获取任务详情输入
 type GetTaskDetailInput struct {
 	TaskUUID string `json:"task_uuid"`
@@ -623,9 +649,15 @@ func (s *Skill) RunCLI() {
 		json.Unmarshal(jsonBytes, &p)
 		result = s.RecycleTasks(p)
 
+	case "delete_task":
+		var p DeleteTaskInput
+		jsonBytes, _ := json.Marshal(params)
+		json.Unmarshal(jsonBytes, &p)
+		result = s.DeleteTask(p)
+
 	default:
 		result = map[string]interface{}{
-			"error": fmt.Sprintf("未知的函数: %s", funcName),
+			"error": fmt.Sprintf("未知的函数：%s", funcName),
 		}
 	}
 
