@@ -16,7 +16,7 @@ from setuptools.command.develop import develop
 
 # Package metadata
 NAME = "task-skill"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 DESCRIPTION = "零依赖、高性能的任务管理技能 - Task Management Skill"
 AUTHOR = "xfwgithub"
 URL = "https://github.com/xfwgithub/aitask-skill"
