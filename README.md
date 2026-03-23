@@ -6,6 +6,14 @@
 
 - **macOS** (Apple Silicon - ARM64) ✅
 
+## 快速安装 (npx skills)
+
+如果你的系统已配置 `npx skills` 环境，你可以直接使用以下命令安装此技能：
+
+```bash
+npx skills add xfwgithub/aitask-skill@task-management
+```
+
 ## 安装
 
 ### 方式 1：通过 pip 安装（推荐）
@@ -50,7 +58,7 @@ pip install -e .
 
 **说明**：
 - ℹ️ 适合开发和调试
-- ℹ️ 需要先编译 Go 二进制（运行 `cd task-management && bash build.sh`）
+- ℹ️ 需要先编译 Go 二进制（运行 `cd skills/task-management && bash build.sh`）
 
 ## 更新
 
@@ -71,7 +79,7 @@ task-skill --version
 
 ```bash
 # 删除旧版本（替换为你的技能目录）
-rm -rf <你的技能目录>/task-management
+rm -rf <你的技能目录>/skills/task-management
 
 # 重新下载安装（参考上方"方式 2"）
 ```
@@ -91,7 +99,7 @@ rm -rf <你的技能目录>/task-management
    ```bash
    # 找到项目中的 SKILL.md 文件
    # 复制到你的技能目录（具体目录取决于你的 IDE/Agent 配置）
-   cp /path/to/aitask-skill/task-management/SKILL.md <你的技能目录>/task-management/
+   cp /path/to/aitask-skill/skills/task-management/SKILL.md <你的技能目录>/task-management/
    ```
 
 3. **首次使用**

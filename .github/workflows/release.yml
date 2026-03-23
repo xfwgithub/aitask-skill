@@ -35,18 +35,18 @@ jobs:
             ${{ runner.os }}-go-
       
       - name: Install dependencies
-        working-directory: ./task-management
+        working-directory: ./skills/task-management
         run: |
           go mod download
           go mod verify
       
       - name: Build for macOS Apple Silicon
-        working-directory: ./task-management
+        working-directory: ./skills/task-management
         run: GOOS=darwin GOARCH=arm64 go build -v -o task-skill .
       
       - name: Create Release Assets
         run: |
-          cd task-management
+          cd skills/task-management
           
           # 创建完整包
           mkdir -p task-skill-${{ github.ref_name }}
@@ -62,10 +62,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            task-management/task-skill
-            task-management/task-skill.sha256
-            task-management/task-skill-${{ github.ref_name }}.zip
-            task-management/task-skill-${{ github.ref_name }}.zip.sha256
+            skills/task-management/task-skill
+            skills/task-management/task-skill.sha256
+            skills/task-management/task-skill-${{ github.ref_name }}.zip
+            skills/task-management/task-skill-${{ github.ref_name }}.zip.sha256
           name: Release ${{ github.ref_name }}
           body: |
             ## 更新内容
