@@ -56,11 +56,15 @@ pip install -e .
 ### 方式二：直接下载二进制
 
 ```bash
-# 下载预编译的二进制文件
-wget https://github.com/xfwgithub/aitask-skill/releases/download/v0.3.1/task-skill-v0.3.1.zip
-unzip task-skill-v0.3.1.zip
-cd task-skill-v0.3.1
+# 下载预编译的完整包（包含 Web UI 静态资源）
+# 替换 <version> 为具体版本号，如 v0.4.1
+wget https://github.com/xfwgithub/aitask-skill/releases/download/<version>/task-skill-<version>.zip
+unzip task-skill-<version>.zip
+cd task-skill-<version>
 ./task-skill --version
+
+# 示例（v0.4.1 版本）
+# wget https://github.com/xfwgithub/aitask-skill/releases/download/v0.4.1/task-skill-v0.4.1.zip
 ```
 
 ## 初始化
