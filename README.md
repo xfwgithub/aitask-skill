@@ -31,20 +31,14 @@ task-skill --help
 wget https://github.com/xfwgithub/aitask-skill/releases/latest/download/task-skill.zip
 unzip task-skill.zip
 cd task-skill
+./task-skill --version
 
 # 或者下载指定版本
 # wget https://github.com/xfwgithub/aitask-skill/releases/download/v0.4.1/task-skill-v0.4.1.zip
-
-# 移动到技能目录
-mkdir -p ~/.agents/skills
-mv task-skill ~/.agents/skills/task-management
-
-# 添加到 PATH
-export PATH=$PATH:~/.agents/skills/task-management
-
-# 验证
-~/.agents/skills/task-management/task-skill --version
 ```
+
+**注意**：此方式下载的是完整包，包含二进制和静态资源，适合直接运行或调试。
+如要作为 AI Agent 技能使用，请参考上方"方式 1"安装。
 
 ### 方式 3：从源码安装
 
@@ -76,8 +70,8 @@ task-skill --version
 ### Release 下载方式更新
 
 ```bash
-# 删除旧版本
-rm -rf ~/.agents/skills/task-management
+# 删除旧版本（替换为你的技能目录）
+rm -rf <你的技能目录>/task-management
 
 # 重新下载安装（参考上方"方式 2"）
 ```
@@ -93,21 +87,22 @@ rm -rf ~/.agents/skills/task-management
    pip install git+https://github.com/xfwgithub/aitask-skill.git
    ```
 
-2. **复制 SKILL.md 到 IDE 技能目录**
+2. **复制 SKILL.md 到技能目录**
    ```bash
    # 找到项目中的 SKILL.md 文件
-   # 复制到你的 IDE 技能目录，例如：
-   cp /path/to/aitask-skill/task-management/SKILL.md ~/.agents/skills/task-management/
+   # 复制到你的技能目录（具体目录取决于你的 IDE/Agent 配置）
+   cp /path/to/aitask-skill/task-management/SKILL.md <你的技能目录>/task-management/
    ```
 
 3. **首次使用**
    - 当 AI Agent 需要执行任务管理功能时，会自动调用 `task-skill` 命令
-   - 首次运行时会自动下载二进制文件和静态资源（约 20MB）
+   - 首次运行时会自动下载二进制文件和静态资源（约 11MB）
 
 **说明**：
 - ✅ 只需要复制 `SKILL.md` 文件到技能目录
 - ✅ 不需要复制其他文件（二进制和静态资源会自动下载）
 - ✅ `task-skill` 命令会自动添加到 PATH，AI Agent 可以直接调用
+- ℹ️ 技能目录位置取决于你使用的 IDE/Agent 配置
 
 ### 命令行界面（直接使用）
 

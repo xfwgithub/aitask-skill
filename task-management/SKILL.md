@@ -66,6 +66,25 @@ cd task-skill
 # wget https://github.com/xfwgithub/aitask-skill/releases/download/v0.4.1/task-skill-v0.4.1.zip
 ```
 
+## 配置 AI Agent 技能
+
+安装完成后，将 `SKILL.md` 复制到你的 AI Agent 技能目录：
+
+```bash
+# 复制 SKILL.md 到技能目录（只复制这个文件！）
+cp /path/to/SKILL.md <你的技能目录>/task-management/
+
+# 验证
+ls <你的技能目录>/task-management/
+# 应该只看到 SKILL.md 文件
+```
+
+**重要说明**：
+- ✅ 技能目录**只需要** `SKILL.md` 文件
+- ✅ 二进制文件和静态资源会自动下载到 Python 包目录
+- ❌ **不要**把整个 task-skill 包复制到技能目录
+- ℹ️ 技能目录位置取决于你使用的 IDE/Agent 配置
+
 ## 初始化
 
 安装完成后，验证安装：
