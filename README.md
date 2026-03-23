@@ -20,8 +20,8 @@ task-skill --help
 ```
 
 **说明**：
-- ✅ 首次运行时会自动从 GitHub Releases 下载预编译的二进制文件（约 20MB）
-- ✅ 后续运行直接使用缓存的二进制，无需重复下载
+- ✅ 首次运行时会自动从 GitHub Releases 下载预编译的完整包（约 11MB，包含二进制 + 静态资源）
+- ✅ 后续运行直接使用缓存，无需重复下载
 - ✅ 无需 Go 环境，无需编译
 
 ### 方式 2：下载 Release
@@ -85,7 +85,32 @@ rm -rf ~/.agents/skills/task-management
 
 ## 使用方式
 
-### 命令行界面（推荐）
+### 作为 AI Agent 技能（推荐）
+
+**安装步骤**：
+
+1. **安装 Python 包**（提供命令行工具）
+   ```bash
+   pip install git+https://github.com/xfwgithub/aitask-skill.git
+   ```
+
+2. **复制 SKILL.md 到 IDE 技能目录**
+   ```bash
+   # 找到项目中的 SKILL.md 文件
+   # 复制到你的 IDE 技能目录，例如：
+   cp /path/to/aitask-skill/task-management/SKILL.md ~/.agents/skills/task-management/
+   ```
+
+3. **首次使用**
+   - 当 AI Agent 需要执行任务管理功能时，会自动调用 `task-skill` 命令
+   - 首次运行时会自动下载二进制文件和静态资源（约 20MB）
+
+**说明**：
+- ✅ 只需要复制 `SKILL.md` 文件到技能目录
+- ✅ 不需要复制其他文件（二进制和静态资源会自动下载）
+- ✅ `task-skill` 命令会自动添加到 PATH，AI Agent 可以直接调用
+
+### 命令行界面（直接使用）
 
 ```bash
 # 查看帮助
