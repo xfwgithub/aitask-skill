@@ -215,6 +215,7 @@ pending → agent_working → agent_review → human_review → done
 
 ## 版本历史
 
+- **v0.4.1** - 修复 Web UI 静态资源路径问题，自动下载完整包
 - **v0.4.0** - 添加子任务支持，改进 CLI 界面，支持 pip 安装，自动下载二进制
 - **v0.3.1** - 添加物理删除功能
 - **v0.3.0** - 初始版本
