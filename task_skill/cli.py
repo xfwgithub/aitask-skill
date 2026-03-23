@@ -14,22 +14,23 @@ from pathlib import Path
 
 def find_go_binary():
     """Find the task-skill Go binary"""
-    # Check if running from source (editable install)
+    # Priority 1: Check if running from source (editable install or local development)
     source_binary = Path(__file__).parent.parent / "task-management" / "task-skill"
     if source_binary.exists():
         return str(source_binary)
     
-    # Check in PATH
+    # Priority 2: Check in bin directory (standard pip install)
+    # The Go binary is installed to the bin directory via entry_points
+    bin_dir = Path(sys.prefix) / "bin"
+    binary_path = bin_dir / "task-skill"
+    if binary_path.exists() and binary_path.stat().st_size > 1000:  # Should be a large binary, not a small script
+        return str(binary_path)
+    
+    # Priority 3: Check in PATH
     for path_dir in os.environ.get("PATH", "").split(os.pathsep):
         binary_path = Path(path_dir) / "task-skill"
-        if binary_path.exists():
+        if binary_path.exists() and binary_path.stat().st_size > 1000:
             return str(binary_path)
-    
-    # Check in scripts directory (installed package)
-    scripts_dir = Path(sys.prefix) / "bin"
-    binary_path = scripts_dir / "task-skill"
-    if binary_path.exists():
-        return str(binary_path)
     
     return None
 
