@@ -89,10 +89,15 @@ task-skill --server
 - `--description` (string, 可选): 任务描述
 - `--priority` (int, 可选): 优先级 1-4（1=Critical/2=High/3=Medium/4=Low），默认 3
 - `--assignee` (string, 可选): 负责人姓名
+- `--parent` (string, 可选): 父任务 UUID（创建子任务时使用）
 
 **调用示例**:
 ```bash
+# 创建普通任务
 task-skill create-task --title "审查文档" --project "aitask-skill" --priority 2 --description "检查完整性"
+
+# 创建子任务
+task-skill create-task --title "子任务-收集资料" --project "demo" --parent abc-123
 ```
 
 ### list-tasks / ls

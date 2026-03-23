@@ -740,6 +740,7 @@ func printUsage() {
     --description <描述>    任务描述
     --priority <1-4>        优先级 (1=Critical, 2=High, 3=Medium, 4=Low)
     --assignee <负责人>     负责人姓名
+    --parent <uuid>         父任务UUID (创建子任务)
 
   list-tasks, ls            列出任务
     --status <状态>         按状态筛选
@@ -800,6 +801,11 @@ func handleCreateTask(skill *Skill, args []string) {
 		case "--assignee":
 			if i+1 < len(args) {
 				input.Assignee = args[i+1]
+				i++
+			}
+		case "--parent":
+			if i+1 < len(args) {
+				input.ParentUUID = args[i+1]
 				i++
 			}
 		}
