@@ -15,7 +15,7 @@ import urllib.request
 from pathlib import Path
 
 
-VERSION = "0.4.1"
+VERSION = "0.4.2"
 GITHUB_RELEASES_URL = f"https://github.com/xfwgithub/aitask-skill/releases/download/v{VERSION}"
 
 

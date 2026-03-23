@@ -1,7 +1,7 @@
 ---
 name: task-management
 description: 零依赖、高性能的任务管理技能。当用户需要创建、查询、更新、删除任务或获取任务统计时使用此技能。
-version: 0.4.0
+version: 0.4.2
 platform: macOS (Apple Silicon)
 ---
 
@@ -63,7 +63,7 @@ cd task-skill
 ./task-skill --version
 
 # 或者下载指定版本
-# wget https://github.com/xfwgithub/aitask-skill/releases/download/v0.4.1/task-skill-v0.4.1.zip
+# wget https://github.com/xfwgithub/aitask-skill/releases/download/v0.4.2/task-skill-v0.4.2.zip
 ```
 
 ## 配置 AI Agent 技能
