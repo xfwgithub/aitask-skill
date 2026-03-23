@@ -47,8 +47,23 @@ def find_go_binary():
     return None
 
 
+def get_package_dir():
+    """Get the task-skill package directory (where static resources should be)"""
+    # For pip installs, look in the same directory as the binary
+    package_dir = Path(__file__).parent
+    if (package_dir / "task-skill").exists():
+        return package_dir
+    
+    # For source installs, use the task-management directory
+    source_dir = Path(__file__).parent.parent / "task-management"
+    if source_dir.exists():
+        return source_dir
+    
+    return None
+
+
 def download_binary():
-    """Download the Go binary from GitHub Releases"""
+    """Download the task-skill package from GitHub Releases"""
     system = platform.system()
     machine = platform.machine()
     
@@ -58,42 +73,68 @@ def download_binary():
         }))
         sys.exit(1)
     
-    # Determine binary name
+    # Determine architecture
     if machine == "arm64":
-        binary_name = "task-skill"  # ARM64 binary
+        arch = "arm64"
     else:
         print(json.dumps({
             "error": f"Unsupported architecture: {machine}. Only ARM64 (Apple Silicon) is supported."
         }))
         sys.exit(1)
     
-    # Download URL
-    download_url = f"{GITHUB_RELEASES_URL}/{binary_name}"
+    # Download the full zip package (includes binary + static resources)
+    zip_name = f"task-skill-v{VERSION}.zip"
+    download_url = f"{GITHUB_RELEASES_URL}/{zip_name}"
     
-    # Determine where to save the binary
-    package_dir = Path(__file__).parent
-    binary_path = package_dir / "task-skill"
+    # Determine where to extract
+    package_dir = get_package_dir()
+    if not package_dir:
+        print(json.dumps({
+            "error": "Could not determine package directory"
+        }))
+        sys.exit(1)
     
-    print(f"Downloading task-skill binary from GitHub Releases...", file=sys.stderr)
+    print(f"Downloading task-skill package from GitHub Releases...", file=sys.stderr)
     print(f"URL: {download_url}", file=sys.stderr)
-    print(f"Destination: {binary_path}", file=sys.stderr)
+    print(f"Destination: {package_dir}", file=sys.stderr)
     
     try:
-        # Download the binary
-        with urllib.request.urlopen(download_url) as response:
-            binary_data = response.read()
+        # Download the zip file
+        import tempfile
+        import zipfile
         
-        # Save to package directory
-        binary_path.write_bytes(binary_data)
-        binary_path.chmod(0o755)
+        with tempfile.NamedTemporaryFile(suffix='.zip', delete=False) as tmp_file:
+            tmp_zip_path = Path(tmp_file.name)
+            with urllib.request.urlopen(download_url) as response:
+                tmp_zip_path.write_bytes(response.read())
         
-        print(f"✓ Binary downloaded successfully ({len(binary_data):,} bytes)", file=sys.stderr)
-        return str(binary_path)
+        print(f"✓ Package downloaded ({tmp_zip_path.stat().st_size:,} bytes)", file=sys.stderr)
         
+        # Extract to package directory
+        with zipfile.ZipFile(str(tmp_zip_path), 'r') as zip_ref:
+            # Extract all files to package directory
+            zip_ref.extractall(str(package_dir))
+        
+        # Clean up temp file
+        tmp_zip_path.unlink()
+        
+        print(f"✓ Package extracted successfully", file=sys.stderr)
+        
+        # Return path to binary
+        binary_path = package_dir / "task-skill"
+        if binary_path.exists():
+            binary_path.chmod(0o755)
+            return str(binary_path)
+        else:
+            print(json.dumps({
+                "error": "Binary not found after extraction"
+            }))
+            sys.exit(1)
+            
     except Exception as e:
         print(json.dumps({
-            "error": f"Failed to download binary: {str(e)}",
-            "help": f"Please download manually from: {GITHUB_RELEASES_URL}"
+            "error": f"Failed to download/extract package: {str(e)}",
+            "help": f"Please download manually from: {download_url}"
         }))
         sys.exit(1)
 
