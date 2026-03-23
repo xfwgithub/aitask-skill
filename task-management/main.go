@@ -668,27 +668,254 @@ func (s *Skill) RunCLI() {
 
 func main() {
 	// 检查命令行参数
-	if len(os.Args) > 1 {
-		switch os.Args[1] {
-		case "--server":
-			// 启动 Web 服务器
-			startServer()
-			return
-		case "--version", "-v":
-			// 显示版本号
-			fmt.Printf("task-skill version %s\n", version)
-			return
-		}
+	if len(os.Args) < 2 {
+		printUsage()
+		return
 	}
 
-	// CLI 模式 - 使用数据库存储
+	// 初始化数据库
 	db, err := NewDatabase("tasks.db")
 	if err != nil {
 		fmt.Printf(`{"error": "数据库连接失败：%v"}`, err)
 		return
 	}
 	skill := NewSkillWithDB(db)
-	skill.RunCLI()
+
+	command := os.Args[1]
+
+	switch command {
+	case "--server", "server":
+		// 启动 Web 服务器
+		startServer()
+	case "--version", "-v", "version":
+		// 显示版本号
+		fmt.Printf("task-skill version %s\n", version)
+	case "--help", "-h", "help":
+		printUsage()
+
+	// 任务管理命令
+	case "create-task":
+		handleCreateTask(skill, os.Args[2:])
+	case "list-tasks", "ls":
+		handleListTasks(skill, os.Args[2:])
+	case "get-task":
+		handleGetTask(skill, os.Args[2:])
+	case "claim-task":
+		handleClaimTask(skill, os.Args[2:])
+	case "submit-review":
+		handleSubmitReview(skill, os.Args[2:])
+	case "review-task":
+		handleReviewTask(skill, os.Args[2:])
+	case "approve-task":
+		handleApproveTask(skill, os.Args[2:])
+	case "cancel-task":
+		handleCancelTask(skill, os.Args[2:])
+	case "delete-task":
+		handleDeleteTask(skill, os.Args[2:])
+	case "recycle-tasks":
+		handleRecycleTasks(skill, os.Args[2:])
+	case "stats":
+		handleStats(skill)
+
+	default:
+		// 兼容旧版 JSON 输入模式
+		skill.RunCLI()
+	}
+}
+
+func printUsage() {
+	fmt.Println(`task-skill - 任务管理技能
+
+用法: task-skill <命令> [选项]
+
+全局命令:
+  server, --server          启动 Web 服务器
+  version, --version, -v    显示版本号
+  help, --help, -h          显示帮助信息
+
+任务管理命令:
+  create-task               创建新任务
+    --title <标题>          任务标题 (必需)
+    --project <项目>        项目名称 (必需)
+    --description <描述>    任务描述
+    --priority <1-4>        优先级 (1=Critical, 2=High, 3=Medium, 4=Low)
+    --assignee <负责人>     负责人姓名
+
+  list-tasks, ls            列出任务
+    --status <状态>         按状态筛选
+    --project <项目>        按项目筛选
+    --limit <数量>          限制返回数量
+
+  get-task <uuid>           获取任务详情
+
+  claim-task <uuid>         领取任务
+
+  submit-review <uuid>      提交初审
+
+  review-task <uuid>        提交人工审核
+
+  approve-task <uuid>       人工审核通过
+
+  cancel-task <uuid>        取消任务
+
+  delete-task <uuid>        物理删除任务 (彻底删除，不可恢复)
+
+  recycle-tasks             回收到期未完成任务
+    --due-date <日期>       截止日期 (格式: 2026-03-22)
+
+  stats                     显示统计信息
+
+示例:
+  task-skill create-task --title "审查文档" --project "demo" --priority 2
+  task-skill list-tasks --status pending
+  task-skill get-task abc-123
+  task-skill claim-task abc-123
+  task-skill stats`)
+}
+
+func handleCreateTask(skill *Skill, args []string) {
+	input := CreateTaskInput{Priority: 3}
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--title":
+			if i+1 < len(args) {
+				input.Title = args[i+1]
+				i++
+			}
+		case "--project":
+			if i+1 < len(args) {
+				input.Project = args[i+1]
+				i++
+			}
+		case "--description":
+			if i+1 < len(args) {
+				input.Description = args[i+1]
+				i++
+			}
+		case "--priority":
+			if i+1 < len(args) {
+				fmt.Sscanf(args[i+1], "%d", &input.Priority)
+				i++
+			}
+		case "--assignee":
+			if i+1 < len(args) {
+				input.Assignee = args[i+1]
+				i++
+			}
+		}
+	}
+	result := skill.CreateTask(input)
+	printResult(result)
+}
+
+func handleListTasks(skill *Skill, args []string) {
+	input := QueryTasksInput{}
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--status":
+			if i+1 < len(args) {
+				input.Status = args[i+1]
+				i++
+			}
+		case "--project":
+			if i+1 < len(args) {
+				input.Project = args[i+1]
+				i++
+			}
+		case "--limit":
+			if i+1 < len(args) {
+				fmt.Sscanf(args[i+1], "%d", &input.Limit)
+				i++
+			}
+		}
+	}
+	result := skill.QueryTasks(input)
+	printResult(result)
+}
+
+func handleGetTask(skill *Skill, args []string) {
+	if len(args) < 1 {
+		fmt.Println(`{"error": "缺少任务 UUID，用法: task-skill get-task <uuid>"}`)
+		return
+	}
+	result := skill.GetTaskDetail(GetTaskDetailInput{TaskUUID: args[0]})
+	printResult(result)
+}
+
+func handleClaimTask(skill *Skill, args []string) {
+	if len(args) < 1 {
+		fmt.Println(`{"error": "缺少任务 UUID，用法: task-skill claim-task <uuid>"}`)
+		return
+	}
+	result := skill.ClaimTask(ClaimTaskInput{TaskUUID: args[0]})
+	printResult(result)
+}
+
+func handleSubmitReview(skill *Skill, args []string) {
+	if len(args) < 1 {
+		fmt.Println(`{"error": "缺少任务 UUID，用法: task-skill submit-review <uuid>"}`)
+		return
+	}
+	result := skill.CompleteTask(CompleteTaskInput{TaskUUID: args[0]})
+	printResult(result)
+}
+
+func handleReviewTask(skill *Skill, args []string) {
+	if len(args) < 1 {
+		fmt.Println(`{"error": "缺少任务 UUID，用法: task-skill review-task <uuid>"}`)
+		return
+	}
+	result := skill.ReviewTask(ReviewTaskInput{TaskUUID: args[0]})
+	printResult(result)
+}
+
+func handleApproveTask(skill *Skill, args []string) {
+	if len(args) < 1 {
+		fmt.Println(`{"error": "缺少任务 UUID，用法: task-skill approve-task <uuid>"}`)
+		return
+	}
+	result := skill.ApproveTask(ApproveTaskInput{TaskUUID: args[0]})
+	printResult(result)
+}
+
+func handleCancelTask(skill *Skill, args []string) {
+	if len(args) < 1 {
+		fmt.Println(`{"error": "缺少任务 UUID，用法: task-skill cancel-task <uuid>"}`)
+		return
+	}
+	result := skill.CancelTask(CancelTaskInput{TaskUUID: args[0]})
+	printResult(result)
+}
+
+func handleDeleteTask(skill *Skill, args []string) {
+	if len(args) < 1 {
+		fmt.Println(`{"error": "缺少任务 UUID，用法: task-skill delete-task <uuid>"}`)
+		return
+	}
+	result := skill.DeleteTask(DeleteTaskInput{TaskUUID: args[0]})
+	printResult(result)
+}
+
+func handleRecycleTasks(skill *Skill, args []string) {
+	input := RecycleTasksInput{}
+	for i := 0; i < len(args); i++ {
+		if args[i] == "--due-date" && i+1 < len(args) {
+			input.DueDate = args[i+1]
+			i++
+		}
+	}
+	result := skill.RecycleTasks(input)
+	printResult(result)
+}
+
+func handleStats(skill *Skill) {
+	result := skill.GetDashboardStats()
+	printResult(result)
+}
+
+func printResult(result map[string]interface{}) {
+	output, _ := json.MarshalIndent(result, "", "  ")
+	fmt.Println(string(output))
 }
 
 // startServer 启动 Web 服务器
