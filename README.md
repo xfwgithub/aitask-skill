@@ -14,10 +14,15 @@
 # 从 GitHub 安装最新版本
 pip install git+https://github.com/xfwgithub/aitask-skill.git
 
-# 验证安装
+# 验证安装（首次运行时会自动下载二进制文件）
 task-skill --version
 task-skill --help
 ```
+
+**说明**：
+- ✅ 首次运行时会自动从 GitHub Releases 下载预编译的二进制文件（约 20MB）
+- ✅ 后续运行直接使用缓存的二进制，无需重复下载
+- ✅ 无需 Go 环境，无需编译
 
 ### 方式 2：下载 Release
 
@@ -47,6 +52,10 @@ cd aitask-skill
 pip install -e .
 ```
 
+**说明**：
+- ℹ️ 适合开发和调试
+- ℹ️ 需要先编译 Go 二进制（运行 `cd task-management && bash build.sh`）
+
 ## 更新
 
 ### pip 安装方式更新
@@ -58,6 +67,9 @@ pip install --upgrade git+https://github.com/xfwgithub/aitask-skill.git
 # 验证更新
 task-skill --version
 ```
+
+**说明**：
+- ✅ 如果版本号更新，首次运行时会自动下载新版本的二进制文件
 
 ### Release 下载方式更新
 
@@ -81,7 +93,7 @@ task-skill create-task --title "我的任务" --project "myproject"
 task-skill create-task --title "紧急任务" --project "demo" --priority 1
 
 # 创建子任务
-task-skill create-task --title "子任务" --project "demo" --parent <父任务UUID>
+task-skill create-task --title "子任务" --project "demo" --parent <父任务 UUID>
 
 # 列出任务
 task-skill list-tasks
@@ -133,14 +145,14 @@ task-skill --server
 ```bash
 # 创建父任务
 task-skill create-task --title "项目规划" --project "demo"
-# 返回: uuid: abc-123
+# 返回：uuid: abc-123
 
 # 创建子任务
 task-skill create-task --title "需求分析" --project "demo" --parent abc-123
 task-skill create-task --title "技术设计" --project "demo" --parent abc-123
 
 # 查看子任务详情（包含 parent_uuid 字段）
-task-skill get-task <子任务uuid>
+task-skill get-task <子任务 uuid>
 ```
 
 ### 状态流转
@@ -171,9 +183,10 @@ pending → agent_working → agent_review → human_review → done
 - **数据库**: SQLite
 - **前端**: HTMX + 原生 JavaScript
 - **CLI**: 子命令风格命令行界面
+- **安装**: Python pip 包装器，自动下载预编译二进制
 
 ## 版本历史
 
-- **v0.4.0** - 添加子任务支持，改进 CLI 界面，支持 pip 安装
+- **v0.4.0** - 添加子任务支持，改进 CLI 界面，支持 pip 安装，自动下载二进制
 - **v0.3.1** - 添加物理删除功能
 - **v0.3.0** - 初始版本
