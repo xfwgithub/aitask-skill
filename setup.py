@@ -81,15 +81,19 @@ class BuildGoBinary:
         env["CGO_ENABLED"] = "1"
         
         result = subprocess.run(
-            ["go", "build", "-o", str(output_path), "."],
+            ["bash", "build.sh"],
             cwd=str(source_path),
             capture_output=True,
             text=True,
             env=env
         )
-        
+
         if result.returncode != 0:
-            raise RuntimeError(f"Failed to build Go binary:\n{result.stderr}")
+            raise RuntimeError(f"Failed to build Go binary:\n{result.stderr}\n{result.stdout}")
+
+        output_path = Path(source_path) / GO_BINARY_NAME
+        if not output_path.exists():
+            raise RuntimeError(f"Build script ran but binary not found at: {output_path}")
         
         # Make executable
         output_path.chmod(0o755)
@@ -113,13 +117,22 @@ class CustomInstallCommand(install):
         # Find source directory
         source_dir = Path(__file__).parent / GO_SOURCE_DIR
         
-        # Build to the installation scripts directory
-        scripts_dir = Path(self.install_scripts)
-        scripts_dir.mkdir(parents=True, exist_ok=True)
-        
         try:
-            binary_path = BuildGoBinary.build_go_binary(source_dir, scripts_dir)
-            print(f"\n✓ Task-skill installed to: {binary_path}")
+            # Build binary in source directory
+            BuildGoBinary.build_go_binary(source_dir, source_dir)
+            
+            # Copy to installation scripts directory
+            scripts_dir = Path(self.install_scripts)
+            scripts_dir.mkdir(parents=True, exist_ok=True)
+            
+            binary_src = source_dir / GO_BINARY_NAME
+            binary_dst = scripts_dir / GO_BINARY_NAME
+            
+            import shutil
+            shutil.copy2(str(binary_src), str(binary_dst))
+            binary_dst.chmod(0o755)
+            
+            print(f"\n✓ Task-skill installed to: {binary_dst}")
             print(f"✓ You can now use 'task-skill' command\n")
         except RuntimeError as e:
             print(f"\n✗ Build failed: {e}")
