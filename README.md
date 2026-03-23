@@ -27,24 +27,23 @@ task-skill --help
 ### 方式 2：下载 Release
 
 ```bash
-# 下载最新版本（替换 <version> 为具体版本号，如 v0.4.0）
-curl -L -o /tmp/task-skill-<version>.zip https://github.com/xfwgithub/aitask-skill/releases/download/<version>/task-skill-<version>.zip
+# 下载最新版本（推荐）
+wget https://github.com/xfwgithub/aitask-skill/releases/latest/download/task-skill.zip
+unzip task-skill.zip
+cd task-skill
 
-# 解压
-unzip /tmp/task-skill-<version>.zip -d /tmp/
+# 或者下载指定版本
+# wget https://github.com/xfwgithub/aitask-skill/releases/download/v0.4.1/task-skill-v0.4.1.zip
 
 # 移动到技能目录
 mkdir -p ~/.agents/skills
-mv /tmp/task-skill-<version> ~/.agents/skills/task-management
+mv task-skill ~/.agents/skills/task-management
 
 # 添加到 PATH
 export PATH=$PATH:~/.agents/skills/task-management
 
 # 验证
 ~/.agents/skills/task-management/task-skill --version
-
-# 示例（v0.4.0 版本）
-# curl -L -o /tmp/task-skill-v0.4.0.zip https://github.com/xfwgithub/aitask-skill/releases/download/v0.4.0/task-skill-v0.4.0.zip
 ```
 
 ### 方式 3：从源码安装
