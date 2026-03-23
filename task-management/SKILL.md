@@ -56,7 +56,7 @@ platform: macOS (Apple Silicon)
 
 **调用示例**:
 ```bash
-echo '{"function": "create_task", "parameters": {"title": "审查文档", "project": "aitask-skill", "priority": 2, "description": "检查完整性"}}' | ./task-skill
+echo '{"function": "create_task", "parameters": {"title": "审查文档", "project": "aitask-skill", "priority": 2, "description": "检查完整性"}}' | task-skill
 ```
 
 ### query_tasks
@@ -72,7 +72,7 @@ echo '{"function": "create_task", "parameters": {"title": "审查文档", "proje
 
 **调用示例**:
 ```bash
-echo '{"function": "query_tasks", "parameters": {"status": "pending"}}' | ./task-skill
+echo '{"function": "query_tasks", "parameters": {"status": "pending"}}' | task-skill
 ```
 
 ### claim_task
@@ -83,7 +83,7 @@ echo '{"function": "query_tasks", "parameters": {"status": "pending"}}' | ./task
 
 **调用示例**:
 ```bash
-echo '{"function": "claim_task", "parameters": {"task_uuid": "abc-123"}}' | ./task-skill
+echo '{"function": "claim_task", "parameters": {"task_uuid": "abc-123"}}' | task-skill
 ```
 
 ### submit_initial_review
@@ -94,7 +94,7 @@ echo '{"function": "claim_task", "parameters": {"task_uuid": "abc-123"}}' | ./ta
 
 **调用示例**:
 ```bash
-echo '{"function": "submit_initial_review", "parameters": {"task_uuid": "abc-123"}}' | ./task-skill
+echo '{"function": "submit_initial_review", "parameters": {"task_uuid": "abc-123"}}' | task-skill
 ```
 
 ### review_task
@@ -105,7 +105,7 @@ echo '{"function": "submit_initial_review", "parameters": {"task_uuid": "abc-123
 
 **调用示例**:
 ```bash
-echo '{"function": "review_task", "parameters": {"task_uuid": "abc-123"}}' | ./task-skill
+echo '{"function": "review_task", "parameters": {"task_uuid": "abc-123"}}' | task-skill
 ```
 
 ### approve_task
@@ -116,7 +116,7 @@ echo '{"function": "review_task", "parameters": {"task_uuid": "abc-123"}}' | ./t
 
 **调用示例**:
 ```bash
-echo '{"function": "approve_task", "parameters": {"task_uuid": "abc-123"}}' | ./task-skill
+echo '{"function": "approve_task", "parameters": {"task_uuid": "abc-123"}}' | task-skill
 ```
 
 ### cancel_task
@@ -127,7 +127,7 @@ echo '{"function": "approve_task", "parameters": {"task_uuid": "abc-123"}}' | ./
 
 **调用示例**:
 ```bash
-echo '{"function": "cancel_task", "parameters": {"task_uuid": "abc-123"}}' | ./task-skill
+echo '{"function": "cancel_task", "parameters": {"task_uuid": "abc-123"}}' | task-skill
 ```
 
 **任务状态说明**：
@@ -146,7 +146,7 @@ echo '{"function": "cancel_task", "parameters": {"task_uuid": "abc-123"}}' | ./t
 
 **调用示例**:
 ```bash
-echo '{"function": "get_task_detail", "parameters": {"task_uuid": "abc-123"}}' | ./task-skill
+echo '{"function": "get_task_detail", "parameters": {"task_uuid": "abc-123"}}' | task-skill
 ```
 
 ### get_version
@@ -156,7 +156,7 @@ echo '{"function": "get_task_detail", "parameters": {"task_uuid": "abc-123"}}' |
 
 **调用示例**:
 ```bash
-echo '{"function": "get_version"}' | ./task-skill
+echo '{"function": "get_version"}' | task-skill
 ```
 
 ### get_dashboard_stats
@@ -166,7 +166,7 @@ echo '{"function": "get_version"}' | ./task-skill
 
 **调用示例**:
 ```bash
-echo '{"function": "get_dashboard_stats"}' | ./task-skill
+echo '{"function": "get_dashboard_stats"}' | task-skill
 ```
 
 ### recycle_tasks
@@ -181,7 +181,7 @@ echo '{"function": "get_dashboard_stats"}' | ./task-skill
 
 **调用示例**:
 ```bash
-echo '{"function": "recycle_tasks", "parameters": {"due_date": "2026-03-22"}}' | ./task-skill
+echo '{"function": "recycle_tasks", "parameters": {"due_date": "2026-03-22"}}' | task-skill
 ```
 
 ### delete_task
@@ -194,17 +194,57 @@ echo '{"function": "recycle_tasks", "parameters": {"due_date": "2026-03-22"}}' |
 
 **调用示例**:
 ```bash
-echo '{"function": "delete_task", "parameters": {"task_uuid": "abc-123"}}' | ./task-skill
+echo '{"function": "delete_task", "parameters": {"task_uuid": "abc-123"}}' | task-skill
+```
+
+## 安装
+
+### 方式一：通过 pip 安装（推荐）
+
+```bash
+# 从 GitHub 安装最新版本
+pip install git+https://github.com/xfwgithub/aitask-skill.git
+
+# 或从本地源码安装
+git clone https://github.com/xfwgithub/aitask-skill.git
+cd aitask-skill
+pip install -e .
+```
+
+### 方式二：直接下载二进制
+
+```bash
+# 下载预编译的二进制文件
+wget https://github.com/xfwgithub/aitask-skill/releases/download/v0.3.1/task-skill-v0.3.1.zip
+unzip task-skill-v0.3.1.zip
+cd task-skill-v0.3.1
+./task-skill --version
 ```
 
 ## 初始化
 
-首次使用或数据库不存在时，在技能目录中执行：
+安装完成后，验证安装：
 
 ```bash
 # 1. 验证安装
-./task-skill --version
+task-skill --version
 
 # 2. 启动 Web 服务器（用于人机协作界面）
-./task-skill --server
+task-skill --server
+```
+
+## CLI 调用方式
+
+所有功能通过 `task-skill` 命令调用，支持两种方式：
+
+### 方式一：直接命令行参数
+```bash
+task-skill --server              # 启动 Web 服务器
+task-skill --version             # 查看版本
+```
+
+### 方式二：JSON 输入（函数调用）
+```bash
+echo '{"function": "get_dashboard_stats"}' | task-skill
+echo '{"function": "create_task", "parameters": {"title": "新任务", "project": "demo"}}' | task-skill
 ```
