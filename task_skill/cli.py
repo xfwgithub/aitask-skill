@@ -49,17 +49,9 @@ def find_go_binary():
 
 def get_package_dir():
     """Get the task-skill package directory (where static resources should be)"""
-    # For pip installs, look in the same directory as the binary
+    # For pip installs, use the package directory where cli.py is located
     package_dir = Path(__file__).parent
-    if (package_dir / "task-skill").exists():
-        return package_dir
-    
-    # For source installs, use the task-management directory
-    source_dir = Path(__file__).parent.parent / "task-management"
-    if source_dir.exists():
-        return source_dir
-    
-    return None
+    return package_dir
 
 
 def download_binary():
