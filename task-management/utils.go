@@ -21,8 +21,8 @@ func getDatabasePath() string {
 	// 默认路径：~/.task-skill/tasks.db
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		// 如果无法获取主目录，回退到当前目录
-		return "tasks.db"
+		// 如果无法获取主目录，回退到 /tmp/task-skill/tasks.db 避免相对路径污染当前目录
+		return "/tmp/task-skill_tasks.db"
 	}
 
 	dbDir := filepath.Join(homeDir, ".task-skill")
@@ -30,8 +30,8 @@ func getDatabasePath() string {
 
 	// 确保目录存在
 	if err := os.MkdirAll(dbDir, 0755); err != nil {
-		// 如果创建目录失败，回退到当前目录
-		return "tasks.db"
+		// 如果创建目录失败，回退到 /tmp 目录
+		return "/tmp/task-skill_tasks.db"
 	}
 
 	return dbPath

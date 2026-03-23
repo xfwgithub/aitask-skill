@@ -15,7 +15,7 @@ import urllib.request
 from pathlib import Path
 
 
-VERSION = "0.4.2"
+VERSION = "0.4.3"
 GITHUB_RELEASES_URL = f"https://github.com/xfwgithub/aitask-skill/releases/download/v{VERSION}"
 
 
@@ -171,13 +171,21 @@ def main():
     if server_mode:
         cwd = str(Path(binary_path).parent)
     
+    # Set unified database path to prevent split brain between CLI and server mode
+    env = os.environ.copy()
+    if "TASK_SKILL_DB_PATH" not in env:
+        db_dir = Path.home() / ".task-skill"
+        db_dir.mkdir(parents=True, exist_ok=True)
+        env["TASK_SKILL_DB_PATH"] = str(db_dir / "tasks.db")
+    
     # Pass all arguments to the Go binary
     try:
         result = subprocess.run(
             [binary_path] + sys.argv[1:],
             capture_output=True,
             text=True,
-            cwd=cwd
+            cwd=cwd,
+            env=env
         )
         
         # Print stdout (JSON output from Go binary)

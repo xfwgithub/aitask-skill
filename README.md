@@ -34,7 +34,7 @@ cd task-skill
 ./task-skill --version
 
 # 或者下载指定版本
-# wget https://github.com/xfwgithub/aitask-skill/releases/download/v0.4.2/task-skill-v0.4.2.zip
+# wget https://github.com/xfwgithub/aitask-skill/releases/download/v0.4.3/task-skill-v0.4.3.zip
 ```
 
 **注意**：此方式下载的是完整包，包含二进制和静态资源，适合直接运行或调试。
@@ -209,6 +209,7 @@ pending → agent_working → agent_review → human_review → done
 
 ## 版本历史
 
+- **v0.4.3** - 修复由于运行模式导致数据库文件割裂（Split Brain）的问题，统一绝对路径
 - **v0.4.2** - 统一版本号管理，修复版本号硬编码导致的多个文件版本不一致问题
 - **v0.4.1** - 修复 Web UI 静态资源路径问题，自动下载完整包
 - **v0.4.0** - 添加子任务支持，改进 CLI 界面，支持 pip 安装，自动下载二进制

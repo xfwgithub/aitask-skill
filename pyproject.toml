@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "task-skill"
-version = "0.4.2"
+version = "0.4.3"
 description = "零依赖、高性能的任务管理技能 - Task Management Skill"
 readme = "README.md"
 license = {text = "MIT"}

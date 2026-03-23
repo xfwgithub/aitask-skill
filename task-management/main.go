@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var version = "0.4.2"
+var version = "0.4.3"
 
 // Task 任务结构
 type Task struct {
