@@ -183,6 +183,8 @@ task-skill review-task abc-123
 ### approve-task
 人工审核通过（human_review → done）
 
+**⚠️ 警告**: 此命令属于人工审核步骤。除非用户明确指示“审核通过”或“标记为已完成”，否则 AI Agent 绝对不能自动调用此命令！
+
 **参数**:
 - `uuid` (string, 必需): 任务 UUID
 
@@ -207,7 +209,7 @@ task-skill cancel-task abc-123
 - `agent_working` - Agent 工作中（agent 已领取，正在处理）
 - `agent_review` - Agent 审核中（agent 提交初审后，等待 agent 自己审核确认）
 - `human_review` - 人工审核中（agent 审核通过后，提交给人工审核）
-- `done` - 完成（人工审核通过）
+- `done` - 完成（人工审核通过。**注意：AI Agent 不得擅自将任务变更为此状态，必须由人类明确授权**）
 - `cancelled` - 已取消
 
 ### delete-task
