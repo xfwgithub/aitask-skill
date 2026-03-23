@@ -18,7 +18,13 @@
     </nav>
 
     <main class="container">
-        {{template "content" .}}
+        {{if eq .Template "index.html"}}
+            {{template "index.html" .}}
+        {{else if eq .Template "tasks.html"}}
+            {{template "tasks.html" .}}
+        {{else if eq .Template "task_detail.html"}}
+            {{template "task_detail.html" .}}
+        {{end}}
     </main>
 
     <!-- 创建任务模态框 -->

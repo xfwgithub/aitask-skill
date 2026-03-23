@@ -134,12 +134,13 @@ task-skill ls --project demo --limit 10
 task-skill get-task <uuid>
 
 # 任务状态操作
-task-skill claim-task <uuid>          # 领取任务
-task-skill submit-review <uuid>       # 提交初审
-task-skill review-task <uuid>         # 提交人工审核
-task-skill approve-task <uuid>        # 审核通过
-task-skill cancel-task <uuid>         # 取消任务
-task-skill delete-task <uuid>         # 物理删除（彻底删除）
+task-skill claim-task <uuid> [意见]         # 领取任务
+task-skill submit-review <uuid> [意见]      # 提交初审
+task-skill review-task <uuid> [意见]        # 提交人工审核
+task-skill approve-task <uuid> [意见]       # 审核通过
+task-skill reject-task <uuid> [意见]        # 审核不通过并退回
+task-skill cancel-task <uuid> [意见]        # 取消任务
+task-skill delete-task <uuid>              # 物理删除（彻底删除）
 
 # 统计信息
 task-skill stats
@@ -202,6 +203,7 @@ pending → agent_working → agent_review → human_review → done
 | `submit-review` | 提交初审 |
 | `review-task` | 提交人工审核 |
 | `approve-task` | 审核通过 |
+| `reject-task` | 审核不通过并退回 |
 | `cancel-task` | 取消任务 |
 | `delete-task` | 物理删除任务 |
 | `recycle-tasks` | 回收到期任务 |
@@ -217,6 +219,8 @@ pending → agent_working → agent_review → human_review → done
 
 ## 版本历史
 
+- **v1.1.0** - 增加任务状态变更时的活动记录和说明评论功能，强化前端操作体验和历史追溯能力
+- **v1.0.0** - 第一个正式稳定版本
 - **v0.4.3** - 修复由于运行模式导致数据库文件割裂（Split Brain）的问题，统一绝对路径
 - **v0.4.2** - 统一版本号管理，修复版本号硬编码导致的多个文件版本不一致问题
 - **v0.4.1** - 修复 Web UI 静态资源路径问题，自动下载完整包

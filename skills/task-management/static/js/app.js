@@ -1,6 +1,7 @@
 // 显示创建模态框
 function showCreateModal(parentUUID = '', project = '') {
-    document.getElementById('createModal').style.display = 'flex';
+    const modal = document.getElementById('createModal');
+    modal.style.display = 'flex';
     loadParentTasks(parentUUID);
     if (project) {
         document.getElementById('project').value = project;

@@ -1,42 +1,42 @@
-{{define "content"}}
+{{define "task_detail.html"}}
 <div class="task-detail">
     <div class="page-header">
-        <h1>{{.Title}}</h1>
+        <h1>{{.Task.Title}}</h1>
         <a href="/tasks" class="btn btn-secondary">返回列表</a>
     </div>
 
     <div class="task-info">
         <div class="info-row">
             <strong>状态:</strong>
-            <span class="badge badge-{{.Status}}">{{.Status}}</span>
+            <span class="badge badge-{{.Task.Status}}">{{.Task.Status}}</span>
         </div>
         <div class="info-row">
-            <strong>项目:</strong> {{if .Project}}<span class="badge badge-project">{{.Project}}</span>{{else}}-{{end}}
+            <strong>项目:</strong> {{if .Task.Project}}<span class="badge badge-project">{{.Task.Project}}</span>{{else}}-{{end}}
         </div>
         <div class="info-row">
-            <strong>父任务:</strong> {{if .ParentUUID}}<a href="/tasks/{{.ParentUUID}}">{{.ParentUUID}}</a>{{else}}-{{end}}
+            <strong>父任务:</strong> {{if .Task.ParentUUID}}<a href="/tasks/{{.Task.ParentUUID}}">{{.Task.ParentUUID}}</a>{{else}}-{{end}}
         </div>
         <div class="info-row">
-            <strong>优先级:</strong> P{{.Priority}}
+            <strong>优先级:</strong> P{{.Task.Priority}}
         </div>
         <div class="info-row">
-            <strong>负责人:</strong> {{if .Assignee}}{{.Assignee}}{{else}}-{{end}}
+            <strong>负责人:</strong> {{if .Task.Assignee}}{{.Task.Assignee}}{{else}}-{{end}}
         </div>
         <div class="info-row">
-            <strong>标签:</strong> {{if .Tags}}{{.Tags}}{{else}}-{{end}}
+            <strong>标签:</strong> {{if .Task.Tags}}{{.Task.Tags}}{{else}}-{{end}}
         </div>
         <div class="info-row">
-            <strong>创建时间:</strong> {{formatDate .CreatedAt}}
+            <strong>创建时间:</strong> {{formatDate .Task.CreatedAt}}
         </div>
         <div class="info-row">
-            <strong>更新时间:</strong> {{formatDate .UpdatedAt}}
+            <strong>更新时间:</strong> {{formatDate .Task.UpdatedAt}}
         </div>
     </div>
 
-    {{if .Description}}
+    {{if .Task.Description}}
     <div class="task-description">
         <h3>描述</h3>
-        <p>{{.Description}}</p>
+        <p>{{.Task.Description}}</p>
     </div>
     {{end}}
 
@@ -46,39 +46,63 @@
         <p class="help-text">💡 状态流转：待办 → Agent 工作中 → Agent 审核 → 人工审核 → 完成</p>
     </div>
 
-    {{if .ReviewComment}}
-    <div class="task-review-comment">
-        <h3>审核意见</h3>
-        <div class="review-comment-box">{{.ReviewComment}}</div>
+    <div class="task-history">
+        <h3>处理记录</h3>
+        <div class="history-list">
+            {{if .Activities}}
+                {{range .Activities}}
+                <div class="history-item">
+                    <div class="history-time">{{formatDate .CreatedAt}}</div>
+                    <div class="history-content">
+                        {{if eq .Action "create"}}
+                            创建了任务
+                        {{else if eq .Action "status_change"}}
+                            状态从 <span class="badge badge-{{.OldStatus}}">{{.OldStatus}}</span> 变更为 <span class="badge badge-{{.NewStatus}}">{{.NewStatus}}</span>
+                        {{else if eq .Action "status_change_with_comment"}}
+                            状态从 <span class="badge badge-{{.OldStatus}}">{{.OldStatus}}</span> 变更为 <span class="badge badge-{{.NewStatus}}">{{.NewStatus}}</span>
+                            {{if .Comment}}
+                            <div class="history-comment">审核意见: {{.Comment}}</div>
+                            {{end}}
+                        {{else if eq .Action "recycle"}}
+                            任务超时被系统回收，状态从 <span class="badge badge-{{.OldStatus}}">{{.OldStatus}}</span> 变更为 <span class="badge badge-{{.NewStatus}}">{{.NewStatus}}</span>
+                        {{else}}
+                            执行了操作: {{.Action}}
+                        {{end}}
+                    </div>
+                </div>
+                {{end}}
+            {{else}}
+                <p class="help-text">暂无处理记录</p>
+            {{end}}
+        </div>
     </div>
-    {{end}}
 </div>
 
 <script>
 // 根据当前状态显示可用的操作按钮
-const currentStatus = '{{.Status}}';
-const uuid = '{{.UUID}}';
+const currentStatus = '{{.Task.Status}}';
+const uuid = '{{.Task.UUID}}';
 const actionButtons = document.getElementById('actionButtons');
 
 const statusActions = {
     'pending': [
-        { status: 'cancelled', text: '取消任务', className: 'btn btn-danger' }
+        { status: 'cancelled', text: '取消任务', className: 'btn btn-danger', showComment: true, commentLabel: '取消原因' }
     ],
     'agent_working': [
-        { status: 'cancelled', text: '取消任务', className: 'btn btn-danger' }
+        { status: 'cancelled', text: '取消任务', className: 'btn btn-danger', showComment: true, commentLabel: '取消原因' }
     ],
     'agent_review': [
-        { status: 'cancelled', text: '取消任务', className: 'btn btn-danger' }
+        { status: 'cancelled', text: '取消任务', className: 'btn btn-danger', showComment: true, commentLabel: '取消原因' }
     ],
     'human_review': [
-        { status: 'done', text: '✓ 审核通过', className: 'btn btn-success', showComment: false },
-        { status: 'pending', text: '✗ 不通过，返回待办', className: 'btn btn-warning', showComment: true }
+        { status: 'done', text: '✓ 审核通过', className: 'btn btn-success', showComment: true, commentLabel: '通过说明（可选）' },
+        { status: 'pending', text: '✗ 不通过，返回待办', className: 'btn btn-warning', showComment: true, commentLabel: '不通过原因' }
     ],
     'done': [
-        { status: 'pending', text: '重新打开', className: 'btn btn-info' }
+        { status: 'pending', text: '重新打开', className: 'btn btn-info', showComment: true, commentLabel: '重新打开原因' }
     ],
     'cancelled': [
-        { status: 'pending', text: '重新打开', className: 'btn btn-info' }
+        { status: 'pending', text: '重新打开', className: 'btn btn-info', showComment: true, commentLabel: '重新打开原因' }
     ]
 };
 
@@ -86,25 +110,25 @@ const actions = statusActions[currentStatus] || [];
 if (actions.length > 0) {
     let html = '<div class="button-group">';
     actions.forEach((action, index) => {
-        html += `<button class="${action.className}" onclick="handleAction('${uuid}', '${action.status}', ${action.showComment || false})">${action.text}</button>`;
+        const commentLabel = action.commentLabel || '说明';
+        const showCommentStr = action.showComment ? 'true' : 'false';
+        html += `<button class="${action.className}" onclick="handleAction('${uuid}', '${action.status}', ${showCommentStr}, '${commentLabel}')">${action.text}</button>`;
     });
     html += '</div>';
     
-    // 如果是人工审核且不通过，添加意见输入框
-    if (currentStatus === 'human_review') {
-        html += `
-            <div id="commentInput" style="display:none; margin-top: 15px;">
-                <div class="form-group">
-                    <label>审核意见 *</label>
-                    <textarea id="reviewComment" class="form-control" rows="3" placeholder="请输入审核意见，说明不通过的原因..."></textarea>
-                </div>
-                <div class="form-actions">
-                    <button class="btn btn-primary" onclick="submitWithComment()">提交</button>
-                    <button class="btn btn-secondary" onclick="cancelComment()">取消</button>
-                </div>
+    // 添加通用的意见输入框（默认隐藏）
+    html += `
+        <div id="commentInput" style="display:none; margin-top: 15px; background: #f8f9fa; padding: 15px; border-radius: 4px; border: 1px solid #ddd;">
+            <div class="form-group">
+                <label id="commentLabel">说明 *</label>
+                <textarea id="reviewComment" class="form-control" rows="3" placeholder="请输入说明..."></textarea>
             </div>
-        `;
-    }
+            <div class="form-actions">
+                <button class="btn btn-primary" onclick="submitWithComment()">提交</button>
+                <button class="btn btn-secondary" onclick="cancelComment()">取消</button>
+            </div>
+        </div>
+    `;
     
     actionButtons.innerHTML = html;
 } else {
@@ -113,49 +137,56 @@ if (actions.length > 0) {
 
 let pendingAction = null;
 
-function handleAction(uuid, status, needComment) {
+function handleAction(uuid, status, needComment, commentLabel) {
     if (needComment) {
         pendingAction = status;
+        document.getElementById('commentLabel').innerText = commentLabel + (commentLabel.includes('可选') ? '' : ' *');
         document.getElementById('commentInput').style.display = 'block';
+        
+        // Hide all buttons when comment input is shown to avoid confusion
+        const buttons = document.querySelectorAll('.button-group button');
+        buttons.forEach(btn => btn.style.display = 'none');
+        
+        document.getElementById('reviewComment').focus();
     } else {
-        updateStatus(uuid, status);
+        updateStatus(uuid, status, '');
     }
 }
 
 function submitWithComment() {
     const comment = document.getElementById('reviewComment').value.trim();
-    if (!comment) {
-        alert('请输入审核意见');
+    const labelText = document.getElementById('commentLabel').innerText;
+    
+    if (!comment && !labelText.includes('可选')) {
+        alert('请输入' + labelText.replace(' *', ''));
         return;
     }
     
     if (!pendingAction) return;
     
-    fetch(`/api/tasks/${uuid}/status`, {
-        method: 'PUT',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            new_status: pendingAction,
-            review_comment: comment
-        })
-    }).then(() => {
-        window.location.reload();
-    });
+    updateStatus(uuid, pendingAction, comment);
 }
 
 function cancelComment() {
     pendingAction = null;
     document.getElementById('commentInput').style.display = 'none';
     document.getElementById('reviewComment').value = '';
+    
+    // Restore buttons
+    const buttons = document.querySelectorAll('.button-group button');
+    buttons.forEach(btn => btn.style.display = 'inline-block');
 }
 
-function updateStatus(uuid, status) {
-    if (!confirm(`确定要将任务标记为"${status}"吗？`)) return;
+function updateStatus(uuid, status, comment = '') {
+    const bodyData = { new_status: status };
+    if (comment) {
+        bodyData.review_comment = comment;
+    }
     
     fetch(`/api/tasks/${uuid}/status`, {
         method: 'PUT',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({new_status: status})
+        body: JSON.stringify(bodyData)
     }).then(() => {
         window.location.reload();
     });

@@ -1,7 +1,7 @@
 ---
 name: ai-task-management
 description: 零依赖、高性能的任务管理技能。当用户需要创建、查询、更新、删除任务或获取任务统计时使用此技能。
-version: 1.0.0
+version: 1.1.0
 platform: macOS (Apple Silicon)
 ---
 
@@ -150,12 +150,15 @@ task-skill get-task abc-123
 ### claim-task
 领取任务（pending → agent_working）
 
+**注意**: 此命令会同时返回任务的详细信息（包含完整的处理历史记录 `activities`），方便 Agent 了解该任务的过往情况。
+
 **参数**:
 - `uuid` (string, 必需): 任务 UUID
+- `[comment]` (string, 可选): 领取说明
 
 **调用示例**:
 ```bash
-task-skill claim-task abc-123
+task-skill claim-task abc-123 "我来处理这个任务"
 ```
 
 ### submit-review
@@ -163,10 +166,11 @@ task-skill claim-task abc-123
 
 **参数**:
 - `uuid` (string, 必需): 任务 UUID
+- `[comment]` (string, 可选): 提交说明，例如完成了哪些工作
 
 **调用示例**:
 ```bash
-task-skill submit-review abc-123
+task-skill submit-review abc-123 "已完成基础功能开发，等待自测"
 ```
 
 ### review-task
@@ -174,10 +178,11 @@ task-skill submit-review abc-123
 
 **参数**:
 - `uuid` (string, 必需): 任务 UUID
+- `[comment]` (string, 可选): 提交给人工审核的说明
 
 **调用示例**:
 ```bash
-task-skill review-task abc-123
+task-skill review-task abc-123 "自测通过，请产品经理验收"
 ```
 
 ### approve-task
@@ -187,10 +192,23 @@ task-skill review-task abc-123
 
 **参数**:
 - `uuid` (string, 必需): 任务 UUID
+- `[comment]` (string, 可选): 审核意见或通过说明
 
 **调用示例**:
 ```bash
-task-skill approve-task abc-123
+task-skill approve-task abc-123 "测试没问题，准予发布"
+```
+
+### reject-task
+人工审核不通过并退回（human_review → pending）
+
+**参数**:
+- `uuid` (string, 必需): 任务 UUID
+- `[comment]` (string, 可选): 审核意见或退回原因
+
+**调用示例**:
+```bash
+task-skill reject-task abc-123 "文档格式不对，请重新排版"
 ```
 
 ### cancel-task
@@ -198,10 +216,11 @@ task-skill approve-task abc-123
 
 **参数**:
 - `uuid` (string, 必需): 任务 UUID
+- `[comment]` (string, 可选): 取消原因
 
 **调用示例**:
 ```bash
-task-skill cancel-task abc-123
+task-skill cancel-task abc-123 "需求变更，此任务不再需要"
 ```
 
 **任务状态说明**：

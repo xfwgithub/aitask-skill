@@ -123,10 +123,21 @@ func (d *Database) initTables() error {
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
 	
+	CREATE TABLE IF NOT EXISTS task_activities (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		task_uuid TEXT NOT NULL,
+		action TEXT NOT NULL,
+		old_status TEXT,
+		new_status TEXT,
+		comment TEXT,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+	);
+	
 	CREATE INDEX IF NOT EXISTS idx_status ON tasks(status);
 	CREATE INDEX IF NOT EXISTS idx_priority ON tasks(priority);
 	CREATE INDEX IF NOT EXISTS idx_assignee ON tasks(assignee_name);
 	CREATE INDEX IF NOT EXISTS idx_project ON tasks(project);
+	CREATE INDEX IF NOT EXISTS idx_activity_task ON task_activities(task_uuid);
 	`
 
 	_, err := d.db.Exec(query)
@@ -135,12 +146,17 @@ func (d *Database) initTables() error {
 
 // CreateTask 创建任务
 func (d *Database) CreateTask(task Task) error {
+	tx, err := d.db.Begin()
+	if err != nil {
+		return err
+	}
+
 	query := `
 	INSERT INTO tasks (uuid, title, description, status, priority, project, parent_uuid, tags, assignee_name, agent_type, agent_model, created_at, updated_at)
 	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
-	_, err := d.db.Exec(query,
+	_, err = tx.Exec(query,
 		task.UUID,
 		task.Title,
 		task.Description,
@@ -155,8 +171,22 @@ func (d *Database) CreateTask(task Task) error {
 		task.CreatedAt,
 		task.UpdatedAt,
 	)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
 
-	return err
+	activityQuery := `
+	INSERT INTO task_activities (task_uuid, action, new_status, comment)
+	VALUES (?, 'create', ?, ?)
+	`
+	_, err = tx.Exec(activityQuery, task.UUID, task.Status, "创建任务")
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
 }
 
 // GetTaskByUUID 根据 UUID 获取任务
@@ -272,26 +302,80 @@ func (d *Database) QueryTasks(status string, priority int, project string, assig
 
 // UpdateTaskStatus 更新任务状态
 func (d *Database) UpdateTaskStatus(uuid string, newStatus string) error {
+	// 获取旧状态
+	var oldStatus string
+	err := d.db.QueryRow("SELECT status FROM tasks WHERE uuid = ?", uuid).Scan(&oldStatus)
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+
+	tx, err := d.db.Begin()
+	if err != nil {
+		return err
+	}
+
 	query := `
 	UPDATE tasks
 	SET status = ?, updated_at = ?
 	WHERE uuid = ?
 	`
+	_, err = tx.Exec(query, newStatus, time.Now().Format(time.RFC3339), uuid)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
 
-	_, err := d.db.Exec(query, newStatus, time.Now().Format(time.RFC3339), uuid)
-	return err
+	if oldStatus != newStatus {
+		activityQuery := `
+		INSERT INTO task_activities (task_uuid, action, old_status, new_status)
+		VALUES (?, 'status_change', ?, ?)
+		`
+		_, err = tx.Exec(activityQuery, uuid, oldStatus, newStatus)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	return tx.Commit()
 }
 
 // UpdateTaskStatusWithComment 更新任务状态并添加审核意见
 func (d *Database) UpdateTaskStatusWithComment(uuid string, newStatus string, comment string) error {
+	// 获取旧状态
+	var oldStatus string
+	err := d.db.QueryRow("SELECT status FROM tasks WHERE uuid = ?", uuid).Scan(&oldStatus)
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+
+	tx, err := d.db.Begin()
+	if err != nil {
+		return err
+	}
+
 	query := `
 	UPDATE tasks
 	SET status = ?, review_comment = ?, updated_at = ?
 	WHERE uuid = ?
 	`
+	_, err = tx.Exec(query, newStatus, comment, time.Now().Format(time.RFC3339), uuid)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
 
-	_, err := d.db.Exec(query, newStatus, comment, time.Now().Format(time.RFC3339), uuid)
-	return err
+	activityQuery := `
+	INSERT INTO task_activities (task_uuid, action, old_status, new_status, comment)
+	VALUES (?, 'status_change_with_comment', ?, ?, ?)
+	`
+	_, err = tx.Exec(activityQuery, uuid, oldStatus, newStatus, comment)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
 }
 
 // UpdateTask 更新任务信息
@@ -328,6 +412,50 @@ func (d *Database) UpdateTask(uuid string, title string, priority int, project s
 
 	_, err := d.db.Exec(query, args...)
 	return err
+}
+
+type TaskActivity struct {
+	ID        int    `json:"id"`
+	TaskUUID  string `json:"task_uuid"`
+	Action    string `json:"action"`
+	OldStatus string `json:"old_status"`
+	NewStatus string `json:"new_status"`
+	Comment   string `json:"comment"`
+	CreatedAt string `json:"created_at"`
+}
+
+// GetTaskActivities 获取任务的活动记录
+func (d *Database) GetTaskActivities(uuid string) ([]TaskActivity, error) {
+	query := `
+	SELECT id, task_uuid, action, IFNULL(old_status, ''), IFNULL(new_status, ''), IFNULL(comment, ''), created_at
+	FROM task_activities
+	WHERE task_uuid = ?
+	ORDER BY created_at DESC
+	`
+	rows, err := d.db.Query(query, uuid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var activities []TaskActivity
+	for rows.Next() {
+		var act TaskActivity
+		err := rows.Scan(
+			&act.ID,
+			&act.TaskUUID,
+			&act.Action,
+			&act.OldStatus,
+			&act.NewStatus,
+			&act.Comment,
+			&act.CreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		activities = append(activities, act)
+	}
+	return activities, nil
 }
 
 // GetDashboardStats 获取统计信息
@@ -393,16 +521,61 @@ func (d *Database) GetDashboardStats() (map[string]int, error) {
 // RecycleTasks 回收到期未完成的任务
 // 将 due_date 之前创建的、状态为 agent_working 的任务重置为 pending
 func (d *Database) RecycleTasks(dueDate string) (int64, error) {
-	query := `
+	// 找出所有需要回收的任务 UUID
+	querySelect := `
+	SELECT uuid FROM tasks
+	WHERE created_at < ? AND status = 'agent_working'
+	`
+	rows, err := d.db.Query(querySelect, dueDate)
+	if err != nil {
+		return 0, err
+	}
+	defer rows.Close()
+
+	var uuids []string
+	for rows.Next() {
+		var uuid string
+		if err := rows.Scan(&uuid); err != nil {
+			return 0, err
+		}
+		uuids = append(uuids, uuid)
+	}
+
+	if len(uuids) == 0 {
+		return 0, nil
+	}
+
+	tx, err := d.db.Begin()
+	if err != nil {
+		return 0, err
+	}
+
+	queryUpdate := `
 	UPDATE tasks
 	SET status = 'pending',
 		updated_at = ?
 	WHERE created_at < ?
 	  AND status = 'agent_working'
 	`
-
-	result, err := d.db.Exec(query, getCurrentTime(), dueDate)
+	result, err := tx.Exec(queryUpdate, getCurrentTime(), dueDate)
 	if err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+
+	activityQuery := `
+	INSERT INTO task_activities (task_uuid, action, old_status, new_status, comment)
+	VALUES (?, 'recycle', 'agent_working', 'pending', '任务超时被系统回收')
+	`
+	for _, uuid := range uuids {
+		_, err = tx.Exec(activityQuery, uuid)
+		if err != nil {
+			tx.Rollback()
+			return 0, err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
 		return 0, err
 	}
 

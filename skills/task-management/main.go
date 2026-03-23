@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var version = "1.0.0"
+var version = "1.1.0"
 
 // Task 任务结构
 type Task struct {
@@ -321,66 +321,101 @@ func (s *Skill) UpdateTaskStatus(input UpdateTaskStatusInput) map[string]interfa
 
 // ClaimTaskInput 领取任务输入
 type ClaimTaskInput struct {
-	TaskUUID string `json:"task_uuid"`
+	TaskUUID      string `json:"task_uuid"`
+	ReviewComment string `json:"review_comment,omitempty"`
 }
 
 // ClaimTask 领取任务（pending → agent_working）
 func (s *Skill) ClaimTask(input ClaimTaskInput) map[string]interface{} {
-	return s.UpdateTaskStatus(UpdateTaskStatusInput{
-		TaskUUID:  input.TaskUUID,
-		NewStatus: "agent_working",
+	result := s.UpdateTaskStatus(UpdateTaskStatusInput{
+		TaskUUID:      input.TaskUUID,
+		NewStatus:     "agent_working",
+		ReviewComment: input.ReviewComment,
 	})
+
+	// 如果更新成功且数据库可用，返回任务详情（包含处理历史）
+	if s.db != nil && result["error"] == nil {
+		detail := s.GetTaskDetail(GetTaskDetailInput{TaskUUID: input.TaskUUID})
+		if detail["error"] == nil {
+			return detail
+		}
+	}
+
+	return result
 }
 
 // CompleteTaskInput 提交初审输入
 type CompleteTaskInput struct {
-	TaskUUID string `json:"task_uuid"`
+	TaskUUID      string `json:"task_uuid"`
+	ReviewComment string `json:"review_comment,omitempty"`
 }
 
 // CompleteTask 提交初审（agent_working → agent_review）
 func (s *Skill) CompleteTask(input CompleteTaskInput) map[string]interface{} {
 	return s.UpdateTaskStatus(UpdateTaskStatusInput{
-		TaskUUID:  input.TaskUUID,
-		NewStatus: "agent_review",
+		TaskUUID:      input.TaskUUID,
+		NewStatus:     "agent_review",
+		ReviewComment: input.ReviewComment,
 	})
 }
 
 // ReviewTaskInput 审查任务输入
 type ReviewTaskInput struct {
-	TaskUUID string `json:"task_uuid"`
+	TaskUUID      string `json:"task_uuid"`
+	ReviewComment string `json:"review_comment,omitempty"`
 }
 
 // ReviewTask 审查任务（agent_review → human_review）
 func (s *Skill) ReviewTask(input ReviewTaskInput) map[string]interface{} {
 	return s.UpdateTaskStatus(UpdateTaskStatusInput{
-		TaskUUID:  input.TaskUUID,
-		NewStatus: "human_review",
+		TaskUUID:      input.TaskUUID,
+		NewStatus:     "human_review",
+		ReviewComment: input.ReviewComment,
 	})
 }
 
 // ApproveTaskInput 人工审核输入
 type ApproveTaskInput struct {
-	TaskUUID string `json:"task_uuid"`
+	TaskUUID      string `json:"task_uuid"`
+	ReviewComment string `json:"review_comment,omitempty"`
+}
+
+// RejectTaskInput 人工审核不通过输入
+type RejectTaskInput struct {
+	TaskUUID      string `json:"task_uuid"`
+	ReviewComment string `json:"review_comment,omitempty"`
+}
+
+// RejectTask 人工审核不通过（human_review → pending）
+func (s *Skill) RejectTask(input RejectTaskInput) map[string]interface{} {
+	return s.UpdateTaskStatus(UpdateTaskStatusInput{
+		TaskUUID:      input.TaskUUID,
+		NewStatus:     "pending",
+		ReviewComment: input.ReviewComment,
+	})
 }
 
 // ApproveTask 人工审核通过（human_review → done）
 func (s *Skill) ApproveTask(input ApproveTaskInput) map[string]interface{} {
 	return s.UpdateTaskStatus(UpdateTaskStatusInput{
-		TaskUUID:  input.TaskUUID,
-		NewStatus: "done",
+		TaskUUID:      input.TaskUUID,
+		NewStatus:     "done",
+		ReviewComment: input.ReviewComment,
 	})
 }
 
 // CancelTaskInput 取消任务输入
 type CancelTaskInput struct {
-	TaskUUID string `json:"task_uuid"`
+	TaskUUID      string `json:"task_uuid"`
+	ReviewComment string `json:"review_comment,omitempty"`
 }
 
 // CancelTask 取消任务（任意状态 → cancelled）
 func (s *Skill) CancelTask(input CancelTaskInput) map[string]interface{} {
 	return s.UpdateTaskStatus(UpdateTaskStatusInput{
-		TaskUUID:  input.TaskUUID,
-		NewStatus: "cancelled",
+		TaskUUID:      input.TaskUUID,
+		NewStatus:     "cancelled",
+		ReviewComment: input.ReviewComment,
 	})
 }
 
@@ -451,6 +486,9 @@ func (s *Skill) GetTaskDetail(input GetTaskDetailInput) map[string]interface{} {
 				"error": "任务不存在",
 			}
 		}
+
+		activities, _ := s.db.GetTaskActivities(input.TaskUUID)
+
 		return map[string]interface{}{
 			"id":          task.ID,
 			"uuid":        task.UUID,
@@ -466,6 +504,7 @@ func (s *Skill) GetTaskDetail(input GetTaskDetailInput) map[string]interface{} {
 			"tags":        task.Tags,
 			"created_at":  task.CreatedAt,
 			"updated_at":  task.UpdatedAt,
+			"activities":  activities,
 		}
 	}
 
@@ -625,6 +664,12 @@ func (s *Skill) RunCLI() {
 		json.Unmarshal(jsonBytes, &p)
 		result = s.ApproveTask(p)
 
+	case "reject_task":
+		var p RejectTaskInput
+		jsonBytes, _ := json.Marshal(params)
+		json.Unmarshal(jsonBytes, &p)
+		result = s.RejectTask(p)
+
 	case "cancel_task":
 		var p CancelTaskInput
 		jsonBytes, _ := json.Marshal(params)
@@ -708,6 +753,8 @@ func main() {
 		handleReviewTask(skill, os.Args[2:])
 	case "approve-task":
 		handleApproveTask(skill, os.Args[2:])
+	case "reject-task":
+		handleRejectTask(skill, os.Args[2:])
 	case "cancel-task":
 		handleCancelTask(skill, os.Args[2:])
 	case "delete-task":
@@ -749,15 +796,17 @@ func printUsage() {
 
   get-task <uuid>           获取任务详情
 
-  claim-task <uuid>         领取任务
+  claim-task <uuid> [意见]  领取任务
 
-  submit-review <uuid>      提交初审
+  submit-review <uuid> [意见] 提交初审
 
-  review-task <uuid>        提交人工审核
+  review-task <uuid> [意见] 提交人工审核
 
-  approve-task <uuid>       人工审核通过
+  approve-task <uuid> [意见] 人工审核通过
 
-  cancel-task <uuid>        取消任务
+  reject-task <uuid> [意见] 审核不通过并退回
+
+  cancel-task <uuid> [意见] 取消任务
 
   delete-task <uuid>        物理删除任务 (彻底删除，不可恢复)
 
@@ -850,46 +899,84 @@ func handleGetTask(skill *Skill, args []string) {
 
 func handleClaimTask(skill *Skill, args []string) {
 	if len(args) < 1 {
-		fmt.Println(`{"error": "缺少任务 UUID，用法: task-skill claim-task <uuid>"}`)
+		fmt.Println(`{"error": "缺少任务 UUID，用法: task-skill claim-task <uuid> [comment]"}`)
 		return
 	}
-	result := skill.ClaimTask(ClaimTaskInput{TaskUUID: args[0]})
+	comment := ""
+	if len(args) > 1 {
+		comment = strings.Join(args[1:], " ")
+	}
+	result := skill.ClaimTask(ClaimTaskInput{TaskUUID: args[0], ReviewComment: comment})
 	printResult(result)
 }
 
 func handleSubmitReview(skill *Skill, args []string) {
 	if len(args) < 1 {
-		fmt.Println(`{"error": "缺少任务 UUID，用法: task-skill submit-review <uuid>"}`)
+		fmt.Println(`{"error": "缺少任务 UUID，用法: task-skill submit-review <uuid> [comment]"}`)
 		return
 	}
-	result := skill.CompleteTask(CompleteTaskInput{TaskUUID: args[0]})
+	comment := ""
+	if len(args) > 1 {
+		comment = strings.Join(args[1:], " ")
+	}
+	result := skill.CompleteTask(CompleteTaskInput{TaskUUID: args[0], ReviewComment: comment})
 	printResult(result)
 }
 
 func handleReviewTask(skill *Skill, args []string) {
 	if len(args) < 1 {
-		fmt.Println(`{"error": "缺少任务 UUID，用法: task-skill review-task <uuid>"}`)
+		fmt.Println(`{"error": "缺少任务 UUID，用法: task-skill review-task <uuid> [comment]"}`)
 		return
 	}
-	result := skill.ReviewTask(ReviewTaskInput{TaskUUID: args[0]})
+	comment := ""
+	if len(args) > 1 {
+		comment = strings.Join(args[1:], " ")
+	}
+	result := skill.ReviewTask(ReviewTaskInput{TaskUUID: args[0], ReviewComment: comment})
 	printResult(result)
 }
 
 func handleApproveTask(skill *Skill, args []string) {
 	if len(args) < 1 {
-		fmt.Println(`{"error": "缺少任务 UUID，用法: task-skill approve-task <uuid>"}`)
+		fmt.Println(`{"error": "缺少任务 UUID，用法: task-skill approve-task <uuid> [comment]"}`)
 		return
 	}
-	result := skill.ApproveTask(ApproveTaskInput{TaskUUID: args[0]})
+	comment := ""
+	if len(args) > 1 {
+		comment = strings.Join(args[1:], " ")
+	}
+	result := skill.ApproveTask(ApproveTaskInput{TaskUUID: args[0], ReviewComment: comment})
+	printResult(result)
+}
+
+func handleRejectTask(skill *Skill, args []string) {
+	if len(args) < 1 {
+		fmt.Println(`{"error": "缺少任务 UUID，用法: task-skill reject-task <uuid> [comment]"}`)
+		return
+	}
+
+	comment := ""
+	if len(args) > 1 {
+		comment = strings.Join(args[1:], " ")
+	}
+
+	result := skill.RejectTask(RejectTaskInput{
+		TaskUUID:      args[0],
+		ReviewComment: comment,
+	})
 	printResult(result)
 }
 
 func handleCancelTask(skill *Skill, args []string) {
 	if len(args) < 1 {
-		fmt.Println(`{"error": "缺少任务 UUID，用法: task-skill cancel-task <uuid>"}`)
+		fmt.Println(`{"error": "缺少任务 UUID，用法: task-skill cancel-task <uuid> [comment]"}`)
 		return
 	}
-	result := skill.CancelTask(CancelTaskInput{TaskUUID: args[0]})
+	comment := ""
+	if len(args) > 1 {
+		comment = strings.Join(args[1:], " ")
+	}
+	result := skill.CancelTask(CancelTaskInput{TaskUUID: args[0], ReviewComment: comment})
 	printResult(result)
 }
 

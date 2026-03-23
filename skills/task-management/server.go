@@ -97,11 +97,15 @@ func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Con
 
 // 页面处理器
 func indexHandler(c echo.Context) error {
-	return c.Render(http.StatusOK, "base.html", nil)
+	return c.Render(http.StatusOK, "base.html", map[string]interface{}{
+		"Template": "index.html",
+	})
 }
 
 func tasksHandler(c echo.Context) error {
-	return c.Render(http.StatusOK, "base.html", nil)
+	return c.Render(http.StatusOK, "base.html", map[string]interface{}{
+		"Template": "tasks.html",
+	})
 }
 
 func taskDetailHandler(c echo.Context) error {
@@ -110,7 +114,20 @@ func taskDetailHandler(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusNotFound, "任务不存在")
 	}
-	return c.Render(http.StatusOK, "base.html", task)
+
+	activities, err := database.GetTaskActivities(uuid)
+
+	data := map[string]interface{}{
+		"Task":       task,
+		"Activities": activities,
+		"Template":   "task_detail.html",
+	}
+
+	if err != nil {
+		data["Activities"] = []TaskActivity{}
+	}
+
+	return c.Render(http.StatusOK, "base.html", data)
 }
 
 // API 处理器
