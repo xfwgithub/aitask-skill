@@ -809,7 +809,7 @@ func printUsage() {
 
   cancel-task <uuid> [意见] 取消任务
 
-  delete-task <uuid>        物理删除任务 (彻底删除，不可恢复)
+  delete-task <uuid>        物理删除任务 (彻底删除, 不可恢复)
 
   recycle-tasks             回收到期未完成任务
     --due-date <日期>       截止日期 (格式: 2026-03-22)

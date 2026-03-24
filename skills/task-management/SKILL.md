@@ -202,7 +202,7 @@ task-skill approve-task abc-123 "测试没问题，准予发布"
 ### reject-task
 审核不通过并退回（agent_review/human_review → pending）
 
-**注意**: 当 Agent 自己审核（agent_review）发现未达到要求时，**必须**使用此命令将任务退回待办状态（pending），**绝不能**使用 cancel-task 取消任务并创建新任务！
+**注意**: 当 Agent 自己审核（agent_review）发现未达到要求时，**必须**使用此命令将任务退回待办状态（pending）！
 
 **参数**:
 - `uuid` (string, 必需): 任务 UUID
@@ -215,6 +215,8 @@ task-skill reject-task abc-123 "文档格式不对，请重新排版"
 
 ### cancel-task
 取消任务（任意状态 → cancelled）
+
+**注意**: 当 Agent 发现需求本身不再需要、重复、或者因为外部原因无法继续时，可使用此命令。但**绝对不能**在"自己审核未达到要求"时用此命令代替 `reject-task`。
 
 **参数**:
 - `uuid` (string, 必需): 任务 UUID
@@ -236,7 +238,7 @@ task-skill cancel-task abc-123 "需求变更，此任务不再需要"
 ### delete-task
 物理删除任务（彻底删除）
 
-**注意**: 此操作不可恢复，请谨慎使用！建议先使用 `cancel-task` 将任务状态改为 cancelled（取消），确认不再需要后再使用此功能彻底删除。
+**注意**: 此操作不可恢复，请谨慎使用！
 
 **参数**:
 - `uuid` (string, 必需): 任务 UUID
