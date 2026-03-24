@@ -42,7 +42,7 @@ jobs:
       
       - name: Build for macOS Apple Silicon
         working-directory: ./skills/task-management
-        run: GOOS=darwin GOARCH=arm64 go build -v -o task-skill .
+        run: GOOS=darwin GOARCH=arm64 go build -v -ldflags "-s -w -X main.version=${{ github.ref_name }}" -o task-skill .
       
       - name: Create Release Assets
         run: |
