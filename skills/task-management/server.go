@@ -166,6 +166,7 @@ func taskDetailHandler(c echo.Context) error {
 func createTaskAPI(c echo.Context) error {
 	var input CreateTaskInput
 	if err := c.Bind(&input); err != nil {
+		fmt.Printf("参数绑定错误：%v\n", err)
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "无效的输入",
 		})

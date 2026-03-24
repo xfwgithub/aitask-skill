@@ -50,7 +50,7 @@ function createTask(event) {
 
     const title = document.getElementById('title').value.trim();
     const project = document.getElementById('project').value.trim();
-    const parentUUID = document.getElementById('parentTask').value;
+    const parentUUID = document.getElementById('parentTask') ? document.getElementById('parentTask').value : '';
 
     if (!title) {
         alert('请输入任务标题');
@@ -64,12 +64,12 @@ function createTask(event) {
 
     const data = {
         title: title,
-        description: document.getElementById('description').value,
-        priority: parseInt(document.getElementById('priority').value),
+        description: document.getElementById('description') ? document.getElementById('description').value : '',
+        priority: document.getElementById('priority') ? parseInt(document.getElementById('priority').value) : 3,
         project: project,
         parent_uuid: parentUUID,
-        assignee_name: document.getElementById('assignee').value,
-        tags: document.getElementById('tags').value.split(',').map(t => t.trim()).filter(t => t)
+        assignee_name: document.getElementById('assignee') ? document.getElementById('assignee').value : '',
+        tags: document.getElementById('tags') ? document.getElementById('tags').value.split(',').map(t => t.trim()).filter(t => t) : []
     };
     
     fetch('/api/tasks', {
