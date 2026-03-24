@@ -149,7 +149,9 @@ function renderTaskRow(task, isChild = false) {
             <td>P${task.priority}</td>
             <td>${task.assignee_name || '-'}</td>
             <td>${task.tags ? task.tags.split(',').map(t => `<span class="badge badge-tag">${t}</span>`).join('') : '-'}</td>
-            <td>${actions}</td>
+            <td>${actions}
+            <button class="btn btn-sm btn-outline-danger" onclick="promptDeleteTask('${task.uuid}')" title="彻底删除"><i class="fas fa-trash"></i></button>
+            </td>
         </tr>
     `;
 }
@@ -381,5 +383,25 @@ function loadProjects() {
 loadStats();
 loadTasks();
 loadProjects();
+function promptDeleteTask(uuid) {
+    if (confirm('确定要彻底删除此任务吗？该操作不可恢复！')) {
+        fetch(`/api/tasks/${uuid}`, {
+            method: 'DELETE'
+        })
+        .then(r => r.json())
+        .then(result => {
+            if (result.error) {
+                alert('删除失败：' + result.error);
+            } else {
+                alert('任务已彻底删除！');
+                loadTasks();
+                loadStats();
+            }
+        })
+        .catch(err => {
+            alert('删除失败：' + err);
+        });
+    }
+}
 </script>
 {{end}}

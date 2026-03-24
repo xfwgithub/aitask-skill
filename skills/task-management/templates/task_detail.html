@@ -2,7 +2,10 @@
 <div class="task-detail">
     <div class="page-header">
         <h1>{{.Task.Title}}</h1>
-        <a href="/tasks" class="btn btn-secondary">返回列表</a>
+        <div class="actions">
+            <button class="btn btn-outline-danger" onclick="promptDeleteTask('{{.Task.UUID}}')">彻底删除</button>
+            <a href="/tasks" class="btn btn-secondary" style="margin-left: 10px;">返回列表</a>
+        </div>
     </div>
 
     <div class="task-info">
@@ -192,6 +195,26 @@ function updateStatus(uuid, status, comment = '') {
     }).then(() => {
         window.location.reload();
     });
+}
+
+function promptDeleteTask(uuid) {
+    if (confirm('确定要彻底删除此任务吗？该操作不可恢复！')) {
+        fetch(`/api/tasks/${uuid}`, {
+            method: 'DELETE'
+        })
+        .then(r => r.json())
+        .then(result => {
+            if (result.error) {
+                alert('删除失败：' + result.error);
+            } else {
+                alert('任务已彻底删除！');
+                window.location.href = '/tasks';
+            }
+        })
+        .catch(err => {
+            alert('删除失败：' + err);
+        });
+    }
 }
 </script>
 {{end}}

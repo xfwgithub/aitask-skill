@@ -111,6 +111,7 @@ func initServer() {
 	e.GET("/api/tasks", queryTasksAPI)
 	e.PUT("/api/tasks/:uuid", updateTaskAPI)
 	e.PUT("/api/tasks/:uuid/status", updateTaskStatusAPI)
+	e.DELETE("/api/tasks/:uuid", deleteTaskAPI)
 	e.GET("/api/stats", getStatsAPI)
 
 	// 启动服务器
@@ -318,11 +319,11 @@ func updateTaskAPI(c echo.Context) error {
 
 func updateTaskStatusAPI(c echo.Context) error {
 	uuid := c.Param("uuid")
+	
 	var input struct {
 		NewStatus     string `json:"new_status"`
 		ReviewComment string `json:"review_comment"`
 	}
-
 	if err := c.Bind(&input); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "无效的输入",
@@ -346,6 +347,20 @@ func updateTaskStatusAPI(c echo.Context) error {
 		"uuid":       uuid,
 		"new_status": input.NewStatus,
 		"message":    "状态已更新",
+	})
+}
+
+func deleteTaskAPI(c echo.Context) error {
+	uuid := c.Param("uuid")
+	
+	if err := database.DeleteTask(uuid); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"message": "任务删除成功",
 	})
 }
 
