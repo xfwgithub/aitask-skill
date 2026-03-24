@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -17,6 +18,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
+
+//go:embed templates/* static/*
+var embedFS embed.FS
 
 var database *Database
 
@@ -83,8 +87,8 @@ func initServer() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	// 静态文件
-	e.Static("/static", "static")
+	// 静态文件 - 使用 embedFS
+	e.StaticFS("/static", echo.MustSubFS(embedFS, "static"))
 
 	// 模板函数
 	funcMap := template.FuncMap{
@@ -97,9 +101,9 @@ func initServer() {
 		},
 	}
 
-	// 模板
+	// 模板 - 使用 embedFS
 	t := &Template{
-		templates: template.Must(template.New("").Funcs(funcMap).ParseGlob("templates/*.html")),
+		templates: template.Must(template.New("").Funcs(funcMap).ParseFS(embedFS, "templates/*.html")),
 	}
 	e.Renderer = t
 

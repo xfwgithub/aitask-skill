@@ -1,7 +1,7 @@
 ---
 name: ai-task-management
 description: 零依赖、高性能的任务管理技能。当用户需要创建、查询、更新、删除任务或获取任务统计时使用此技能。
-version: 1.1.6
+version: 1.2.0
 platform: macOS (Apple Silicon)
 ---
 
@@ -41,32 +41,26 @@ platform: macOS (Apple Silicon)
 
 ## 安装
 
-### 方式一：通过 pip 安装（强烈推荐）
+### 方式一：一键安装（推荐）
 
-这是最简单、最完整的安装方式，它会自动下载包含 Web 静态资源的最新版本，并将命令添加到系统 PATH 中。
+这是最简单、最干净的安装方式，直接下载预编译二进制文件。
 
 ```bash
-# 从 GitHub 安装最新版本
-pip install git+https://github.com/xfwgithub/aitask-skill.git
+sudo curl -sL https://github.com/xfwgithub/aitask-skill/releases/latest/download/task-skill -o /usr/local/bin/task-skill
+sudo chmod +x /usr/local/bin/task-skill
 
-# 或者使用 python3 -m pip（如果上面的命令找不到）
-python3 -m pip install git+https://github.com/xfwgithub/aitask-skill.git
-
-# 验证安装（首次运行时会自动下载二进制文件）
+# 验证安装
 task-skill --version
 ```
 
-### 方式二：直接下载二进制
+### 方式二：手动下载
 
 ```bash
-# 下载最新版本的完整包（包含 Web UI 静态资源）
+# 下载最新版本的完整包
 wget https://github.com/xfwgithub/aitask-skill/releases/latest/download/task-skill.zip
 unzip task-skill.zip
 cd task-skill
 ./task-skill --version
-
-# 或者下载指定版本
-# wget https://github.com/xfwgithub/aitask-skill/releases/download/v0.4.3/task-skill-v0.4.3.zip
 ```
 
 ## 配置 AI Agent 技能
@@ -74,18 +68,14 @@ cd task-skill
 安装完成后，将 `SKILL.md` 复制到你的 AI Agent 技能目录：
 
 ```bash
-# 复制 SKILL.md 到技能目录（只复制这个文件！）
-cp /path/to/SKILL.md <你的技能目录>/task-management/
-
-# 验证
-ls <你的技能目录>/task-management/
-# 应该只看到 SKILL.md 文件
+# 下载 SKILL.md 到技能目录
+mkdir -p ~/.agents/skills/task-management
+curl -sL https://raw.githubusercontent.com/xfwgithub/aitask-skill/main/skills/task-management/SKILL.md -o ~/.agents/skills/task-management/SKILL.md
 ```
 
 **重要说明**：
 - ✅ 技能目录**只需要** `SKILL.md` 文件
-- ✅ 二进制文件和静态资源会自动下载到 Python 包目录
-- ❌ **不要**把整个 task-skill 包复制到技能目录
+- ✅ `task-skill` 是一个独立的单文件程序，无需其他依赖
 - ℹ️ 技能目录位置取决于你使用的 IDE/Agent 配置
 
 ## 初始化

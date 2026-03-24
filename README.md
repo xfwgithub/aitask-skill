@@ -1,6 +1,6 @@
 # Task Management Skill
 
-零依赖、高性能的任务管理技能，使用 Go + HTMX 实现。支持 pip 安装，提供直观的命令行界面。
+零依赖、高性能的任务管理技能，使用 Go + HTMX 实现。单文件绿色免安装，提供直观的命令行界面和 Web UI。
 
 ## 平台支持
 
@@ -8,101 +8,41 @@
 
 ## 安装
 
-### 方式 1：通过 pip 安装（推荐）
+### 方式 1：一键安装（推荐）
 
-这是最简单、最完整的安装方式，它会自动下载包含 Web 静态资源的最新版本，并将命令添加到系统 PATH 中。
+直接下载预编译二进制文件到系统 PATH 中：
 
 ```bash
-# 从 GitHub 安装最新版本
-pip install git+https://github.com/xfwgithub/aitask-skill.git
+sudo curl -sL https://github.com/xfwgithub/aitask-skill/releases/latest/download/task-skill -o /usr/local/bin/task-skill
+sudo chmod +x /usr/local/bin/task-skill
 
-# 或者使用 python3 -m pip（如果上面的命令找不到）
-python3 -m pip install git+https://github.com/xfwgithub/aitask-skill.git
-
-# 验证安装（首次运行时会自动下载二进制文件）
+# 验证安装
 task-skill --version
 ```
 
 **说明**：
-- ✅ 首次运行时会自动从 GitHub Releases 下载预编译的完整包（约 11MB，包含二进制 + 静态资源）
-- ✅ 后续运行直接使用缓存，无需重复下载
-- ✅ 无需 Go 环境，无需编译
+- ✅ 单文件，自带 Web UI 静态资源，无需依赖任何环境
+- ✅ 极速运行，没有 Python 包装器的冷启动延迟
 
-### 方式 2：下载 Release
+### 方式 2：作为 AI Agent 技能配置
+
+1. 确保已按上方步骤安装 `task-skill` 并可通过终端运行。
+2. 下载 [SKILL.md](https://raw.githubusercontent.com/xfwgithub/aitask-skill/main/skills/task-management/SKILL.md) 并放入你的技能配置目录中：
 
 ```bash
-# 下载最新版本（推荐）
-wget https://github.com/xfwgithub/aitask-skill/releases/latest/download/task-skill.zip
-unzip task-skill.zip
-cd task-skill
-./task-skill --version
-
-# 或者下载指定版本
-# wget https://github.com/xfwgithub/aitask-skill/releases/download/v0.4.3/task-skill-v0.4.3.zip
+mkdir -p ~/.agents/skills/task-management
+curl -sL https://raw.githubusercontent.com/xfwgithub/aitask-skill/main/skills/task-management/SKILL.md -o ~/.agents/skills/task-management/SKILL.md
 ```
-
-**注意**：此方式下载的是完整包，包含二进制和静态资源，适合直接运行或调试。
-如要作为 AI Agent 技能使用，请参考上方"方式 1"安装。
 
 ## 更新
 
-### pip 安装方式更新
-
 ```bash
-# 更新到最新版本
-pip install --upgrade git+https://github.com/xfwgithub/aitask-skill.git
-# 或者
-python3 -m pip install --upgrade git+https://github.com/xfwgithub/aitask-skill.git
-
-# 如果遇到文件冲突或无法更新，可以先卸载再安装
-python3 -m pip uninstall task-skill -y
-python3 -m pip install git+https://github.com/xfwgithub/aitask-skill.git
-
-# 验证更新
+sudo curl -sL https://github.com/xfwgithub/aitask-skill/releases/latest/download/task-skill -o /usr/local/bin/task-skill
+sudo chmod +x /usr/local/bin/task-skill
 task-skill --version
 ```
 
-**说明**：
-- ✅ 如果版本号更新，首次运行时会自动下载新版本的二进制文件
-
-### Release 下载方式更新
-
-```bash
-# 删除旧版本（替换为你的技能目录）
-rm -rf <你的技能目录>/skills/task-management
-
-# 重新下载安装（参考上方"方式 2"）
-```
-
 ## 使用方式
-
-### 作为 AI Agent 技能（推荐）
-
-**安装步骤**：
-
-1. **安装 Python 包**（提供命令行工具）
-   ```bash
-   pip install git+https://github.com/xfwgithub/aitask-skill.git
-   ```
-
-2. **复制 SKILL.md 到技能目录**
-   ```bash
-   # 找到项目中的 SKILL.md 文件
-   # 复制到你的技能目录（具体目录取决于你的 IDE/Agent 配置）
-   cp /path/to/aitask-skill/skills/task-management/SKILL.md <你的技能目录>/task-management/
-   ```
-
-3. **首次使用**
-   - 在终端或由 AI Agent 调用 `task-skill --version`
-   - 首次运行时，Python 包装器会自动检测系统并从 GitHub Releases 下载预编译的 Go 二进制文件和必要的静态资源（约 11MB）到你的 Python 环境目录下。
-
-**注意**：
-- 如果你之前使用过其他安装方式，导致环境不生效或冲突，可以先运行 `python3 -m pip uninstall task-skill -y` 清理。
-- 只有成功运行了 `pip install` 且能通过 `task-skill --version` 看到版本号，才代表安装真正成功！
-- ✅ 只需要复制 `SKILL.md` 文件到技能目录
-- ✅ 不需要复制其他文件（二进制和静态资源会自动下载）
-- ✅ `task-skill` 命令会自动添加到 PATH，AI Agent 可以直接调用
-- ℹ️ 技能目录位置取决于你使用的 IDE/Agent 配置
 
 ### 命令行界面（直接使用）
 
@@ -211,6 +151,7 @@ pending → agent_working → agent_review → human_review → done
 
 ## 版本历史
 
+- **v1.2.0** - 重大架构升级：移除 Python/pip 依赖，采用 Go `go:embed` 静态编译，实现真正的单文件免安装运行。
 - **v1.1.6** - 修复了 CLI 中的版本强校验导致的循环下载 Bug 以及创建任务页面标签字段的 Bug
 - **v1.1.0** - 增加任务状态变更时的活动记录和说明评论功能，强化前端操作体验和历史追溯能力
 - **v1.0.0** - 第一个正式稳定版本
