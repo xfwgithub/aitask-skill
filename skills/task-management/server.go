@@ -105,7 +105,6 @@ func initServer() {
 
 	// 路由
 	e.GET("/", indexHandler)
-	e.GET("/tasks", tasksHandler)
 	e.GET("/tasks/:uuid", taskDetailHandler)
 	e.POST("/api/tasks", createTaskAPI)
 	e.GET("/api/tasks", queryTasksAPI)
@@ -132,7 +131,7 @@ func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Con
 
 // 页面处理器
 func indexHandler(c echo.Context) error {
-	return c.Redirect(http.StatusFound, "/tasks")
+	return tasksHandler(c)
 }
 
 func tasksHandler(c echo.Context) error {
@@ -260,7 +259,7 @@ func queryTasksAPI(c echo.Context) error {
 			limit = parsed
 		}
 	}
-	
+
 	page := 1
 	if p := c.QueryParam("page"); p != "" {
 		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
@@ -285,7 +284,7 @@ func queryTasksAPI(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"total": total,
-		"page": page,
+		"page":  page,
 		"limit": limit,
 		"tasks": tasks,
 	})
@@ -319,7 +318,7 @@ func updateTaskAPI(c echo.Context) error {
 
 func updateTaskStatusAPI(c echo.Context) error {
 	uuid := c.Param("uuid")
-	
+
 	var input struct {
 		NewStatus     string `json:"new_status"`
 		ReviewComment string `json:"review_comment"`
@@ -352,7 +351,7 @@ func updateTaskStatusAPI(c echo.Context) error {
 
 func deleteTaskAPI(c echo.Context) error {
 	uuid := c.Param("uuid")
-	
+
 	if err := database.DeleteTask(uuid); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

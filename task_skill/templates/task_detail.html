@@ -4,7 +4,7 @@
         <h1>{{.Task.Title}}</h1>
         <div class="actions">
             <button class="btn btn-outline-danger" onclick="promptDeleteTask('{{.Task.UUID}}')">彻底删除</button>
-            <a href="/tasks" class="btn btn-secondary" style="margin-left: 10px;">返回列表</a>
+            <a href="/" class="btn btn-secondary" style="margin-left: 10px;">返回列表</a>
         </div>
     </div>
 
@@ -208,7 +208,7 @@ function promptDeleteTask(uuid) {
                 alert('删除失败：' + result.error);
             } else {
                 alert('任务已彻底删除！');
-                window.location.href = '/tasks';
+                window.location.href = '/';
             }
         })
         .catch(err => {

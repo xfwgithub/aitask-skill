@@ -196,7 +196,7 @@ function closeCommentModal() {
 }
 
 let currentPage = 1;
-const pageSize = 10;
+const pageSize = 15;
 
 function changePage(delta) {
     currentPage += delta;
@@ -234,6 +234,8 @@ function loadTasks(resetPage = false) {
             document.getElementById('pageInfo').innerText = `第 ${currentPage} / ${totalPages} 页 (共 ${data.total} 条)`;
             document.getElementById('prevPage').disabled = currentPage <= 1;
             document.getElementById('nextPage').disabled = currentPage >= totalPages;
+            document.getElementById('prevPage').style.opacity = currentPage <= 1 ? '0.5' : '1';
+            document.getElementById('nextPage').style.opacity = currentPage >= totalPages ? '0.5' : '1';
 
             const childMap = {};
             const rootTasks = [];
