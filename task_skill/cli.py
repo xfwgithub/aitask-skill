@@ -24,27 +24,47 @@ def find_go_binary():
     # Priority 1: Check if running from source (editable install or local development)
     source_binary = Path(__file__).parent.parent / "task-management" / "task-skill"
     if source_binary.exists():
-        return str(source_binary)
+        if check_binary_version(source_binary):
+            return str(source_binary)
     
     # Priority 2: Check in package data directory
     package_dir = Path(__file__).parent
     binary_path = package_dir / "task-skill"
     if binary_path.exists() and binary_path.stat().st_size > 100000:
-        return str(binary_path)
+        if check_binary_version(binary_path):
+            return str(binary_path)
     
     # Priority 3: Check in bin directory (standard pip install)
     bin_dir = Path(sys.prefix) / "bin"
     binary_path = bin_dir / "task-skill"
     if binary_path.exists() and binary_path.stat().st_size > 100000:
-        return str(binary_path)
+        if check_binary_version(binary_path):
+            return str(binary_path)
     
     # Priority 4: Check in PATH
     for path_dir in os.environ.get("PATH", "").split(os.pathsep):
         binary_path = Path(path_dir) / "task-skill"
         if binary_path.exists() and binary_path.stat().st_size > 100000:
-            return str(binary_path)
+            if check_binary_version(binary_path):
+                return str(binary_path)
     
     return None
+
+def check_binary_version(binary_path):
+    """Check if the binary version matches the expected version"""
+    try:
+        result = subprocess.run([str(binary_path), "--version"], capture_output=True, text=True, timeout=2)
+        if result.returncode == 0:
+            # We relax the strict version check to avoid infinite download loops 
+            # when the Github Release package is slightly out of sync with the pip package.
+            output = result.stdout.strip()
+            # Still warn if version is completely wrong or very old, but accept it if it runs
+            if VERSION not in output:
+                print(f"Warning: Found binary ({output}), pip wrapper expects {VERSION}.", file=sys.stderr)
+            return True
+        return False
+    except Exception:
+        return False
 
 
 def get_package_dir():
