@@ -44,18 +44,6 @@ cd task-skill
 **注意**：此方式下载的是完整包，包含二进制和静态资源，适合直接运行或调试。
 如要作为 AI Agent 技能使用，请参考上方"方式 1"安装。
 
-### 方式 3：从源码安装
-
-```bash
-git clone https://github.com/xfwgithub/aitask-skill.git
-cd aitask-skill
-pip install -e .
-```
-
-**说明**：
-- ℹ️ 适合开发和调试
-- ℹ️ 需要先编译 Go 二进制（运行 `cd skills/task-management && bash build.sh`）
-
 ## 更新
 
 ### pip 安装方式更新
