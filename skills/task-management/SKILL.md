@@ -49,7 +49,7 @@ platform: macOS (Apple Silicon)
 # 从 GitHub 安装最新版本
 pip install git+https://github.com/xfwgithub/aitask-skill.git
 
-# 或者使用 python -m pip（如果上面的命令找不到）
+# 或者使用 python3 -m pip（如果上面的命令找不到）
 python3 -m pip install git+https://github.com/xfwgithub/aitask-skill.git
 
 # 验证安装（首次运行时会自动下载二进制文件）

@@ -6,16 +6,6 @@
 
 - **macOS** (Apple Silicon - ARM64) ✅
 
-## 快速安装 (npx skills)
-
-如果你的系统已配置 `npx skills` 环境，你可以直接使用以下命令安装此技能：
-
-```bash
-npx skills add xfwgithub/aitask-skill@task-management
-```
-
-> **注意**：这种安装方式会将技能配置安装到本地的 `.agents/skills` 目录中，但运行需要有 `task-skill` 的可执行环境。建议**同时**执行下方的 pip 安装，或者直接使用 pip 安装。
-
 ## 安装
 
 ### 方式 1：通过 pip 安装（推荐）
@@ -26,7 +16,7 @@ npx skills add xfwgithub/aitask-skill@task-management
 # 从 GitHub 安装最新版本
 pip install git+https://github.com/xfwgithub/aitask-skill.git
 
-# 或者使用 python -m pip（如果上面的命令找不到）
+# 或者使用 python3 -m pip（如果上面的命令找不到）
 python3 -m pip install git+https://github.com/xfwgithub/aitask-skill.git
 
 # 验证安装（首次运行时会自动下载二进制文件）
@@ -119,7 +109,7 @@ rm -rf <你的技能目录>/skills/task-management
    - 首次运行时，Python 包装器会自动检测系统并从 GitHub Releases 下载预编译的 Go 二进制文件和必要的静态资源（约 11MB）到你的 Python 环境目录下。
 
 **注意**：
-- 如果你之前使用 `npx skills` 安装过，或者修改了 `.agents/skills` 下的文件，这并不代表环境安装成功，因为 `task-skill` 的核心逻辑是通过 `pip` 安装的 Python 包装器执行的。
+- 如果你之前使用过其他安装方式，导致环境不生效或冲突，可以先运行 `python3 -m pip uninstall task-skill -y` 清理。
 - 只有成功运行了 `pip install` 且能通过 `task-skill --version` 看到版本号，才代表安装真正成功！
 - ✅ 只需要复制 `SKILL.md` 文件到技能目录
 - ✅ 不需要复制其他文件（二进制和静态资源会自动下载）
