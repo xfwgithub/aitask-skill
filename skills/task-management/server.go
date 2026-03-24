@@ -97,9 +97,7 @@ func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Con
 
 // 页面处理器
 func indexHandler(c echo.Context) error {
-	return c.Render(http.StatusOK, "base.html", map[string]interface{}{
-		"Template": "index.html",
-	})
+	return c.Redirect(http.StatusFound, "/tasks")
 }
 
 func tasksHandler(c echo.Context) error {
@@ -221,14 +219,29 @@ func queryTasksAPI(c echo.Context) error {
 	project := c.QueryParam("project")
 	assignee := c.QueryParam("assignee")
 	keyword := c.QueryParam("keyword")
-	limit := 20
+	limit := 10
 	if l := c.QueryParam("limit"); l != "" {
 		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 {
 			limit = parsed
 		}
 	}
+	
+	page := 1
+	if p := c.QueryParam("page"); p != "" {
+		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
+			page = parsed
+		}
+	}
+	offset := (page - 1) * limit
 
-	tasks, err := database.QueryTasks(status, priority, project, assignee, keyword, limit)
+	total, err := database.CountTasks(status, priority, project, assignee, keyword)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "查询总数失败",
+		})
+	}
+
+	tasks, err := database.QueryTasks(status, priority, project, assignee, keyword, limit, offset)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "查询失败",
@@ -236,7 +249,9 @@ func queryTasksAPI(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"total": len(tasks),
+		"total": total,
+		"page": page,
+		"limit": limit,
 		"tasks": tasks,
 	})
 }

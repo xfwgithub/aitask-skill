@@ -177,6 +177,7 @@ type QueryTasksInput struct {
 	Assignee string `json:"assignee_name,omitempty"`
 	Keyword  string `json:"keyword,omitempty"`
 	Limit    int    `json:"limit,omitempty"`
+	Offset   int    `json:"offset,omitempty"`
 }
 
 // QueryTasks 查询任务
@@ -186,7 +187,7 @@ func (s *Skill) QueryTasks(input QueryTasksInput) map[string]interface{} {
 	// 使用数据库查询
 	if s.db != nil {
 		var err error
-		tasks, err = s.db.QueryTasks(input.Status, input.Priority, input.Project, input.Assignee, input.Keyword, input.Limit)
+		tasks, err = s.db.QueryTasks(input.Status, input.Priority, input.Project, input.Assignee, input.Keyword, input.Limit, input.Offset)
 		if err != nil {
 			return map[string]interface{}{
 				"error": fmt.Sprintf("查询任务失败：%v", err),

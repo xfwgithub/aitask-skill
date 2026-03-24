@@ -8,7 +8,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-VERSION="1.1.0"
+VERSION="1.1.1"
 BINARY_NAME="task-skill"
 
 echo "🔨 Task Management Skill v${VERSION} 构建脚本"
@@ -51,7 +51,7 @@ if [ -f "$BINARY_NAME" ]; then
     
     # 测试 CLI 模式
     echo "🧪 测试 CLI 模式..."
-    RESULT=$(echo '{"function": "get_dashboard_stats"}' | ./"$BINARY_NAME" 2>&1)
+    RESULT=$(./"$BINARY_NAME" stats 2>&1)
     if echo "$RESULT" | grep -q "total"; then
         echo "✓ CLI 模式测试通过"
     else

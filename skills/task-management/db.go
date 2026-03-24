@@ -223,8 +223,43 @@ func (d *Database) GetTaskByUUID(uuid string) (*Task, error) {
 	return task, nil
 }
 
+// CountTasks 查询任务总数
+func (d *Database) CountTasks(status string, priority int, project string, assignee string, keyword string) (int, error) {
+	query := `SELECT COUNT(*) FROM tasks WHERE 1=1`
+	args := []interface{}{}
+
+	if status != "" {
+		query += " AND status = ?"
+		args = append(args, status)
+	}
+
+	if priority != 0 {
+		query += " AND priority = ?"
+		args = append(args, priority)
+	}
+
+	if project != "" {
+		query += " AND project = ?"
+		args = append(args, project)
+	}
+
+	if assignee != "" {
+		query += " AND assignee_name = ?"
+		args = append(args, assignee)
+	}
+
+	if keyword != "" {
+		query += " AND title LIKE ?"
+		args = append(args, "%"+keyword+"%")
+	}
+
+	var count int
+	err := d.db.QueryRow(query, args...).Scan(&count)
+	return count, err
+}
+
 // QueryTasks 查询任务
-func (d *Database) QueryTasks(status string, priority int, project string, assignee string, keyword string, limit int) ([]Task, error) {
+func (d *Database) QueryTasks(status string, priority int, project string, assignee string, keyword string, limit int, offset int) ([]Task, error) {
 	query := `
 	SELECT id, uuid, title, description, status, priority, project, parent_uuid, tags, assignee_name, agent_type, agent_model, review_comment, created_at, updated_at
 	FROM tasks
@@ -263,6 +298,11 @@ func (d *Database) QueryTasks(status string, priority int, project string, assig
 	if limit > 0 {
 		query += " LIMIT ?"
 		args = append(args, limit)
+	}
+	
+	if offset > 0 {
+		query += " OFFSET ?"
+		args = append(args, offset)
 	}
 
 	rows, err := d.db.Query(query, args...)

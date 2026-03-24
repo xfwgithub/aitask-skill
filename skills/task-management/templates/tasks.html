@@ -73,13 +73,11 @@
 
     <div class="filters">
         <input type="text" id="search" placeholder="搜索任务..." class="form-control" 
-               hx-get="/api/tasks" hx-trigger="keyup changed delay:300ms" hx-target="#taskList">
-        <select id="filterProject" class="form-control" 
-                hx-get="/api/tasks" hx-trigger="change" hx-target="#taskList">
+               onkeyup="if(event.key === 'Enter') loadTasks(true)">
+        <select id="filterProject" class="form-control" onchange="loadTasks(true)">
             <option value="">全部项目</option>
         </select>
-        <select id="filterStatus" class="form-control" 
-                hx-get="/api/tasks" hx-trigger="change" hx-target="#taskList">
+        <select id="filterStatus" class="form-control" onchange="loadTasks(true)">
             <option value="">全部状态</option>
             <option value="pending">待办</option>
             <option value="agent_working">Agent 工作中</option>
@@ -91,6 +89,11 @@
     </div>
 
     <div id="taskList">加载中...</div>
+    <div id="pagination" class="pagination" style="display: none; justify-content: center; margin-top: 20px; gap: 10px;">
+        <button id="prevPage" class="btn btn-secondary btn-sm" onclick="changePage(-1)">上一页</button>
+        <span id="pageInfo" style="line-height: 28px;">第 1 页</span>
+        <button id="nextPage" class="btn btn-secondary btn-sm" onclick="changePage(1)">下一页</button>
+    </div>
 </div>
 
 <!-- 评论/说明输入弹窗 -->
@@ -184,12 +187,24 @@ function closeCommentModal() {
     currentActionData = null;
 }
 
-function loadTasks() {
+let currentPage = 1;
+const pageSize = 10;
+
+function changePage(delta) {
+    currentPage += delta;
+    if (currentPage < 1) currentPage = 1;
+    loadTasks();
+}
+
+function loadTasks(resetPage = false) {
+    if (resetPage) {
+        currentPage = 1;
+    }
     const status = document.getElementById('filterStatus').value;
     const project = document.getElementById('filterProject').value;
     const keyword = document.getElementById('search').value;
     
-    let url = '/api/tasks?';
+    let url = `/api/tasks?page=${currentPage}&limit=${pageSize}&`;
     if (status) url += `status=${status}&`;
     if (project) url += `project=${encodeURIComponent(project)}&`;
     if (keyword) url += `keyword=${encodeURIComponent(keyword)}&`;
@@ -198,10 +213,19 @@ function loadTasks() {
         .then(r => r.json())
         .then(data => {
             const container = document.getElementById('taskList');
+            const pagination = document.getElementById('pagination');
+            
             if (!data.tasks || data.tasks.length === 0) {
                 container.innerHTML = '<p class="empty-state">暂无任务</p>';
+                pagination.style.display = 'none';
                 return;
             }
+
+            const totalPages = Math.max(1, Math.ceil(data.total / pageSize));
+            pagination.style.display = 'flex';
+            document.getElementById('pageInfo').innerText = `第 ${currentPage} / ${totalPages} 页 (共 ${data.total} 条)`;
+            document.getElementById('prevPage').disabled = currentPage <= 1;
+            document.getElementById('nextPage').disabled = currentPage >= totalPages;
 
             const childMap = {};
             const rootTasks = [];
