@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -18,9 +20,52 @@ import (
 
 var database *Database
 
-// ServerConfig 服务器配置
-type ServerConfig struct {
-	Port int
+// checkAndKillProcessOnPort 检查并清理占用端口的进程
+func checkAndKillProcessOnPort(port int) {
+	if runtime.GOOS == "windows" {
+		// Windows: 使用 netstat 和 taskkill
+		out, err := exec.Command("cmd", "/C", fmt.Sprintf("netstat -ano | findstr :%d", port)).Output()
+		if err == nil && len(out) > 0 {
+			lines := strings.Split(string(out), "\n")
+			for _, line := range lines {
+				if strings.Contains(line, fmt.Sprintf(":%d", port)) && strings.Contains(line, "LISTENING") {
+					parts := strings.Fields(line)
+					if len(parts) >= 5 {
+						pid := parts[len(parts)-1]
+						fmt.Printf("⚠️ 端口 %d 被进程 %s 占用，尝试清理...\n", port, pid)
+						exec.Command("taskkill", "/F", "/PID", pid).Run()
+					}
+				}
+			}
+		}
+	} else {
+		// Linux/macOS: 使用 lsof 和 kill
+		out, err := exec.Command("lsof", "-t", "-i", fmt.Sprintf(":%d", port)).Output()
+		if err == nil && len(out) > 0 {
+			pids := strings.Split(strings.TrimSpace(string(out)), "\n")
+			for _, pid := range pids {
+				if pid != "" {
+					fmt.Printf("⚠️ 端口 %d 被进程 %s 占用，尝试清理...\n", port, pid)
+					exec.Command("kill", "-9", pid).Run()
+				}
+			}
+		}
+	}
+}
+
+// TemplateRegistry 定义模板渲染器
+type TemplateRegistry struct {
+	templates map[string]*template.Template
+}
+
+// Render 实现 echo.Renderer 接口
+func (t *TemplateRegistry) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	tmpl, ok := t.templates[name]
+	if !ok {
+		err := fmt.Errorf("Template not found -> %s", name)
+		return err
+	}
+	return tmpl.ExecuteTemplate(w, "base.html", data)
 }
 
 // initServer 初始化并启动 Web 服务器
@@ -32,6 +77,11 @@ func initServer() {
 			port = p
 		}
 	}
+
+	// 检查端口是否被占用，如果是，尝试杀掉旧进程
+	checkAndKillProcessOnPort(port)
+	// 给一点时间让端口释放
+	time.Sleep(500 * time.Millisecond)
 
 	// 初始化数据库
 	var err error
