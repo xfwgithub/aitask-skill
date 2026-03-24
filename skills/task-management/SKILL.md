@@ -200,7 +200,9 @@ task-skill approve-task abc-123 "测试没问题，准予发布"
 ```
 
 ### reject-task
-人工审核不通过并退回（human_review → pending）
+审核不通过并退回（agent_review/human_review → pending）
+
+**注意**: 当 Agent 自己审核（agent_review）发现未达到要求时，**必须**使用此命令将任务退回待办状态（pending），**绝不能**使用 cancel-task 取消任务并创建新任务！
 
 **参数**:
 - `uuid` (string, 必需): 任务 UUID

@@ -114,8 +114,14 @@
 <script>
 function renderTaskRow(task, isChild = false) {
     let actions = '';
-    if (task.status === 'pending' || task.status === 'agent_working' || task.status === 'agent_review') {
+    if (task.status === 'pending' || task.status === 'agent_working') {
         actions = `
+            <button class="btn btn-sm btn-danger" onclick="promptUpdateStatus('${task.uuid}', 'cancelled', '取消原因')">取消</button>
+        `;
+    } else if (task.status === 'agent_review') {
+        actions = `
+            <button class="btn btn-sm btn-primary" onclick="promptUpdateStatus('${task.uuid}', 'human_review', '提交说明')">提交审核</button>
+            <button class="btn btn-sm btn-warning" onclick="promptUpdateStatus('${task.uuid}', 'pending', '退回原因')">退回</button>
             <button class="btn btn-sm btn-danger" onclick="promptUpdateStatus('${task.uuid}', 'cancelled', '取消原因')">取消</button>
         `;
     } else if (task.status === 'human_review') {

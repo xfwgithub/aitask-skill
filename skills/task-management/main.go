@@ -381,13 +381,13 @@ type ApproveTaskInput struct {
 	ReviewComment string `json:"review_comment,omitempty"`
 }
 
-// RejectTaskInput 人工审核不通过输入
+// RejectTaskInput 审核不通过输入
 type RejectTaskInput struct {
 	TaskUUID      string `json:"task_uuid"`
 	ReviewComment string `json:"review_comment,omitempty"`
 }
 
-// RejectTask 人工审核不通过（human_review → pending）
+// RejectTask 审核不通过（agent_review/human_review → pending）
 func (s *Skill) RejectTask(input RejectTaskInput) map[string]interface{} {
 	return s.UpdateTaskStatus(UpdateTaskStatusInput{
 		TaskUUID:      input.TaskUUID,
