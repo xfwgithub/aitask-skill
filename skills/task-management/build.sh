@@ -8,7 +8,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-VERSION="1.1.2"
+VERSION="1.1.4"
 BINARY_NAME="task-skill"
 
 echo "🔨 Task Management Skill v${VERSION} 构建脚本"

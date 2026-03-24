@@ -1,7 +1,7 @@
 {
   "name": "task-management",
   "description": "零依赖、高性能的任务管理技能。当用户需要创建、查询、更新、删除任务或获取任务统计时使用此技能。",
-  "version": "1.1.0",
+  "version": "1.1.4",
   "command": "./task-skill",
   "cwd": "~/.agents/skills/task-management",
   "input": {
