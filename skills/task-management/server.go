@@ -22,24 +22,8 @@ var database *Database
 
 // checkAndKillProcessOnPort 检查并清理占用端口的进程
 func checkAndKillProcessOnPort(port int) {
-	if runtime.GOOS == "windows" {
-		// Windows: 使用 netstat 和 taskkill
-		out, err := exec.Command("cmd", "/C", fmt.Sprintf("netstat -ano | findstr :%d", port)).Output()
-		if err == nil && len(out) > 0 {
-			lines := strings.Split(string(out), "\n")
-			for _, line := range lines {
-				if strings.Contains(line, fmt.Sprintf(":%d", port)) && strings.Contains(line, "LISTENING") {
-					parts := strings.Fields(line)
-					if len(parts) >= 5 {
-						pid := parts[len(parts)-1]
-						fmt.Printf("⚠️ 端口 %d 被进程 %s 占用，尝试清理...\n", port, pid)
-						exec.Command("taskkill", "/F", "/PID", pid).Run()
-					}
-				}
-			}
-		}
-	} else {
-		// Linux/macOS: 使用 lsof 和 kill
+	if runtime.GOOS == "darwin" {
+		// macOS: 使用 lsof 和 kill
 		out, err := exec.Command("lsof", "-t", "-i", fmt.Sprintf(":%d", port)).Output()
 		if err == nil && len(out) > 0 {
 			pids := strings.Split(strings.TrimSpace(string(out)), "\n")
