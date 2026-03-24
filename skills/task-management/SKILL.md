@@ -41,16 +41,19 @@ platform: macOS (Apple Silicon)
 
 ## 安装
 
-### 方式一：通过 pip 安装（推荐）
+### 方式一：通过 pip 安装（强烈推荐）
+
+这是最简单、最完整的安装方式，它会自动下载包含 Web 静态资源的最新版本，并将命令添加到系统 PATH 中。
 
 ```bash
 # 从 GitHub 安装最新版本
 pip install git+https://github.com/xfwgithub/aitask-skill.git
 
-# 或从本地源码安装
-git clone https://github.com/xfwgithub/aitask-skill.git
-cd aitask-skill
-pip install -e .
+# 或者使用 python -m pip（如果上面的命令找不到）
+python3 -m pip install git+https://github.com/xfwgithub/aitask-skill.git
+
+# 验证安装（首次运行时会自动下载二进制文件）
+task-skill --version
 ```
 
 ### 方式二：直接下载二进制

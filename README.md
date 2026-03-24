@@ -14,17 +14,23 @@
 npx skills add xfwgithub/aitask-skill@task-management
 ```
 
+> **注意**：这种安装方式会将技能配置安装到本地的 `.agents/skills` 目录中，但运行需要有 `task-skill` 的可执行环境。建议**同时**执行下方的 pip 安装，或者直接使用 pip 安装。
+
 ## 安装
 
 ### 方式 1：通过 pip 安装（推荐）
+
+这是最简单、最完整的安装方式，它会自动下载包含 Web 静态资源的最新版本，并将命令添加到系统 PATH 中。
 
 ```bash
 # 从 GitHub 安装最新版本
 pip install git+https://github.com/xfwgithub/aitask-skill.git
 
+# 或者使用 python -m pip（如果上面的命令找不到）
+python3 -m pip install git+https://github.com/xfwgithub/aitask-skill.git
+
 # 验证安装（首次运行时会自动下载二进制文件）
 task-skill --version
-task-skill --help
 ```
 
 **说明**：
@@ -67,6 +73,12 @@ pip install -e .
 ```bash
 # 更新到最新版本
 pip install --upgrade git+https://github.com/xfwgithub/aitask-skill.git
+# 或者
+python3 -m pip install --upgrade git+https://github.com/xfwgithub/aitask-skill.git
+
+# 如果遇到文件冲突或无法更新，可以先卸载再安装
+python3 -m pip uninstall task-skill -y
+python3 -m pip install git+https://github.com/xfwgithub/aitask-skill.git
 
 # 验证更新
 task-skill --version
@@ -103,10 +115,12 @@ rm -rf <你的技能目录>/skills/task-management
    ```
 
 3. **首次使用**
-   - 当 AI Agent 需要执行任务管理功能时，会自动调用 `task-skill` 命令
-   - 首次运行时会自动下载二进制文件和静态资源（约 11MB）
+   - 在终端或由 AI Agent 调用 `task-skill --version`
+   - 首次运行时，Python 包装器会自动检测系统并从 GitHub Releases 下载预编译的 Go 二进制文件和必要的静态资源（约 11MB）到你的 Python 环境目录下。
 
-**说明**：
+**注意**：
+- 如果你之前使用 `npx skills` 安装过，或者修改了 `.agents/skills` 下的文件，这并不代表环境安装成功，因为 `task-skill` 的核心逻辑是通过 `pip` 安装的 Python 包装器执行的。
+- 只有成功运行了 `pip install` 且能通过 `task-skill --version` 看到版本号，才代表安装真正成功！
 - ✅ 只需要复制 `SKILL.md` 文件到技能目录
 - ✅ 不需要复制其他文件（二进制和静态资源会自动下载）
 - ✅ `task-skill` 命令会自动添加到 PATH，AI Agent 可以直接调用
