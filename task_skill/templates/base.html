@@ -22,9 +22,7 @@
     </nav>
 
     <main class="container">
-        {{if eq .Template "index.html"}}
-            {{template "index.html" .}}
-        {{else if eq .Template "tasks.html"}}
+        {{if eq .Template "tasks.html"}}
             {{template "tasks.html" .}}
         {{else if eq .Template "task_detail.html"}}
             {{template "task_detail.html" .}}
