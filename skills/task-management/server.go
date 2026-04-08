@@ -2,7 +2,6 @@ package main
 
 import (
 	"embed"
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
@@ -41,12 +40,12 @@ func checkAndKillProcessOnPort(port int) {
 	}
 }
 
-// TemplateRegistry 定义模板渲染器
+// TemplateRegistry 定义模板渲染器（已废弃，保留以免破坏外部引用）
 type TemplateRegistry struct {
 	templates map[string]*template.Template
 }
 
-// Render 实现 echo.Renderer 接口
+// Render 实现 echo.Renderer 接口（已废弃）
 func (t *TemplateRegistry) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	tmpl, ok := t.templates[name]
 	if !ok {
@@ -196,15 +195,9 @@ func createTaskAPI(c echo.Context) error {
 		input.Priority = 3
 	}
 	if input.ParentUUID != "" {
-		parentTask, err := database.GetTaskByUUID(input.ParentUUID)
-		if err != nil {
+		if err := database.ValidateParentTask(input.ParentUUID); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]string{
-				"error": "父任务不存在",
-			})
-		}
-		if parentTask.ParentUUID != nil && *parentTask.ParentUUID != "" {
-			return c.JSON(http.StatusBadRequest, map[string]string{
-				"error": "只支持2级主子任务，不能挂到子任务下",
+				"error": err.Error(),
 			})
 		}
 	}
@@ -334,16 +327,29 @@ func updateTaskStatusAPI(c echo.Context) error {
 		})
 	}
 
-	var err error
-	if input.ReviewComment != "" {
-		err = database.UpdateTaskStatusWithComment(uuid, input.NewStatus, input.ReviewComment)
-	} else {
-		err = database.UpdateTaskStatus(uuid, input.NewStatus)
+	// 先获取旧状态进行校验
+	oldTask, err := database.GetTaskByUUID(uuid)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{
+			"error": "任务不存在",
+		})
+	}
+	if oldTask.Status != input.NewStatus && !IsValidTransition(oldTask.Status, input.NewStatus) {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": GetInvalidTransitionError(oldTask.Status, input.NewStatus).Error(),
+		})
 	}
 
-	if err != nil {
+	var updateErr error
+	if input.ReviewComment != "" {
+		updateErr = database.UpdateTaskStatusWithComment(uuid, input.NewStatus, input.ReviewComment)
+	} else {
+		updateErr = database.UpdateTaskStatus(uuid, input.NewStatus)
+	}
+
+	if updateErr != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "更新失败",
+			"error": updateErr.Error(),
 		})
 	}
 
@@ -377,19 +383,4 @@ func getStatsAPI(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, stats)
-}
-
-// 辅助函数
-func contains(slice []string, item string) bool {
-	for _, v := range slice {
-		if v == item {
-			return true
-		}
-	}
-	return false
-}
-
-func jsonEscape(str string) string {
-	data, _ := json.Marshal(str)
-	return string(data)[1 : len(data)-1]
 }

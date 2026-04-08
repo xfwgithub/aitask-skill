@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var version = "1.2.0"
+var version = "1.3.0"
 
 // Task 任务结构
 type Task struct {
@@ -83,15 +83,9 @@ func (s *Skill) CreateTask(input CreateTaskInput) map[string]interface{} {
 	}
 	if input.ParentUUID != "" {
 		if s.db != nil {
-			parentTask, err := s.db.GetTaskByUUID(input.ParentUUID)
-			if err != nil {
+			if err := s.db.ValidateParentTask(input.ParentUUID); err != nil {
 				return map[string]interface{}{
-					"error": "父任务不存在",
-				}
-			}
-			if parentTask.ParentUUID != nil && *parentTask.ParentUUID != "" {
-				return map[string]interface{}{
-					"error": "只支持2级主子任务，不能挂到子任务下",
+					"error": err.Error(),
 				}
 			}
 		} else {
@@ -303,6 +297,12 @@ func (s *Skill) UpdateTaskStatus(input UpdateTaskStatusInput) map[string]interfa
 	for i, task := range s.tasks {
 		if task.UUID == input.TaskUUID {
 			oldStatus := task.Status
+			// 校验状态流转
+			if oldStatus != input.NewStatus && !IsValidTransition(oldStatus, input.NewStatus) {
+				return map[string]interface{}{
+					"error": GetInvalidTransitionError(oldStatus, input.NewStatus).Error(),
+				}
+			}
 			s.tasks[i].Status = input.NewStatus
 			s.tasks[i].UpdatedAt = getCurrentTime()
 
@@ -622,8 +622,15 @@ func (s *Skill) RunCLI() {
 	switch funcName {
 	case "create_task":
 		var p CreateTaskInput
-		jsonBytes, _ := json.Marshal(params)
-		json.Unmarshal(jsonBytes, &p)
+		jsonBytes, err := json.Marshal(params)
+		if err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数序列化失败: %v", err)}
+			break
+		}
+		if err := json.Unmarshal(jsonBytes, &p); err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数解析失败: %v", err)}
+			break
+		}
 		if p.Priority == 0 {
 			p.Priority = 3 // 默认中等优先级
 		}
@@ -631,56 +638,119 @@ func (s *Skill) RunCLI() {
 
 	case "query_tasks":
 		var p QueryTasksInput
-		jsonBytes, _ := json.Marshal(params)
-		json.Unmarshal(jsonBytes, &p)
+		jsonBytes, err := json.Marshal(params)
+		if err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数序列化失败: %v", err)}
+			break
+		}
+		if err := json.Unmarshal(jsonBytes, &p); err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数解析失败: %v", err)}
+			break
+		}
 		result = s.QueryTasks(p)
 
 	case "update_task_status":
 		var p UpdateTaskStatusInput
-		jsonBytes, _ := json.Marshal(params)
-		json.Unmarshal(jsonBytes, &p)
+		jsonBytes, err := json.Marshal(params)
+		if err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数序列化失败: %v", err)}
+			break
+		}
+		if err := json.Unmarshal(jsonBytes, &p); err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数解析失败: %v", err)}
+			break
+		}
 		result = s.UpdateTaskStatus(p)
 
 	case "claim_task":
 		var p ClaimTaskInput
-		jsonBytes, _ := json.Marshal(params)
-		json.Unmarshal(jsonBytes, &p)
+		jsonBytes, err := json.Marshal(params)
+		if err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数序列化失败: %v", err)}
+			break
+		}
+		if err := json.Unmarshal(jsonBytes, &p); err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数解析失败: %v", err)}
+			break
+		}
 		result = s.ClaimTask(p)
 
 	case "submit_initial_review":
 		var p CompleteTaskInput
-		jsonBytes, _ := json.Marshal(params)
-		json.Unmarshal(jsonBytes, &p)
+		jsonBytes, err := json.Marshal(params)
+		if err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数序列化失败: %v", err)}
+			break
+		}
+		if err := json.Unmarshal(jsonBytes, &p); err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数解析失败: %v", err)}
+			break
+		}
 		result = s.CompleteTask(p)
 
 	case "review_task":
 		var p ReviewTaskInput
-		jsonBytes, _ := json.Marshal(params)
-		json.Unmarshal(jsonBytes, &p)
+		jsonBytes, err := json.Marshal(params)
+		if err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数序列化失败: %v", err)}
+			break
+		}
+		if err := json.Unmarshal(jsonBytes, &p); err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数解析失败: %v", err)}
+			break
+		}
 		result = s.ReviewTask(p)
 
 	case "approve_task":
 		var p ApproveTaskInput
-		jsonBytes, _ := json.Marshal(params)
-		json.Unmarshal(jsonBytes, &p)
+		jsonBytes, err := json.Marshal(params)
+		if err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数序列化失败: %v", err)}
+			break
+		}
+		if err := json.Unmarshal(jsonBytes, &p); err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数解析失败: %v", err)}
+			break
+		}
 		result = s.ApproveTask(p)
 
 	case "reject_task":
 		var p RejectTaskInput
-		jsonBytes, _ := json.Marshal(params)
-		json.Unmarshal(jsonBytes, &p)
+		jsonBytes, err := json.Marshal(params)
+		if err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数序列化失败: %v", err)}
+			break
+		}
+		if err := json.Unmarshal(jsonBytes, &p); err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数解析失败: %v", err)}
+			break
+		}
 		result = s.RejectTask(p)
 
 	case "cancel_task":
 		var p CancelTaskInput
-		jsonBytes, _ := json.Marshal(params)
-		json.Unmarshal(jsonBytes, &p)
+		jsonBytes, err := json.Marshal(params)
+		if err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数序列化失败: %v", err)}
+			break
+		}
+		if err := json.Unmarshal(jsonBytes, &p); err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数解析失败: %v", err)}
+			break
+		}
 		result = s.CancelTask(p)
 
 	case "get_task_detail":
 		var p GetTaskDetailInput
-		jsonBytes, _ := json.Marshal(params)
-		json.Unmarshal(jsonBytes, &p)
+		jsonBytes, err := json.Marshal(params)
+		if err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数序列化失败: %v", err)}
+			break
+		}
+		if err := json.Unmarshal(jsonBytes, &p); err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数解析失败: %v", err)}
+			break
+		}
 		result = s.GetTaskDetail(p)
 
 	case "get_version":
@@ -691,14 +761,28 @@ func (s *Skill) RunCLI() {
 
 	case "recycle_tasks":
 		var p RecycleTasksInput
-		jsonBytes, _ := json.Marshal(params)
-		json.Unmarshal(jsonBytes, &p)
+		jsonBytes, err := json.Marshal(params)
+		if err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数序列化失败: %v", err)}
+			break
+		}
+		if err := json.Unmarshal(jsonBytes, &p); err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数解析失败: %v", err)}
+			break
+		}
 		result = s.RecycleTasks(p)
 
 	case "delete_task":
 		var p DeleteTaskInput
-		jsonBytes, _ := json.Marshal(params)
-		json.Unmarshal(jsonBytes, &p)
+		jsonBytes, err := json.Marshal(params)
+		if err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数序列化失败: %v", err)}
+			break
+		}
+		if err := json.Unmarshal(jsonBytes, &p); err != nil {
+			result = map[string]interface{}{"error": fmt.Sprintf("参数解析失败: %v", err)}
+			break
+		}
 		result = s.DeleteTask(p)
 
 	default:
@@ -859,6 +943,10 @@ func handleCreateTask(skill *Skill, args []string) {
 				i++
 			}
 		}
+	}
+	if input.Priority < 1 || input.Priority > 4 {
+		fmt.Println(`{"error": "优先级必须在 1-4 范围内"}`)
+		return
 	}
 	result := skill.CreateTask(input)
 	printResult(result)
