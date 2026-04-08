@@ -105,7 +105,7 @@ func createTestTask(t *testing.T, db *Database, uuid string, status string) {
 		UUID:      uuid,
 		Title:     "Test Task",
 		Status:    status,
-		Priority:  3,
+		Priority:  50,
 		Project:   strPtr("test"),
 		CreatedAt: "2026-01-01T00:00:00Z",
 		UpdatedAt: "2026-01-01T00:00:00Z",
@@ -305,7 +305,7 @@ func TestRecycleTasks_BatchInsert(t *testing.T) {
 			UUID:      strings.Repeat(string(rune('a'+i)), 8),
 			Title:     "Old Task",
 			Status:    "agent_working",
-			Priority:  3,
+			Priority:  50,
 			Project:   strPtr("test"),
 			CreatedAt: "2026-01-01T00:00:00Z", // 旧任务
 			UpdatedAt: "2026-01-01T00:00:00Z",
@@ -320,7 +320,7 @@ func TestRecycleTasks_BatchInsert(t *testing.T) {
 		UUID:      "newtask001",
 		Title:     "New Task",
 		Status:    "agent_working",
-		Priority:  3,
+		Priority:  50,
 		Project:   strPtr("test"),
 		CreatedAt: "2026-12-01T00:00:00Z", // 新任务
 		UpdatedAt: "2026-12-01T00:00:00Z",

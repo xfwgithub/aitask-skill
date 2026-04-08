@@ -65,7 +65,7 @@ function createTask(event) {
     const data = {
         title: title,
         description: document.getElementById('description') ? document.getElementById('description').value : '',
-        priority: document.getElementById('priority') ? parseInt(document.getElementById('priority').value) : 3,
+        priority: document.getElementById('priority') ? parseInt(document.getElementById('priority').value) : 50,
         project: project,
         parent_uuid: parentUUID,
         assignee_name: document.getElementById('assignee') ? document.getElementById('assignee').value : '',

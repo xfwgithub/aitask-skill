@@ -102,7 +102,7 @@ task-skill --server
 - `--title` (string, 必需): 任务标题
 - `--project` (string, 必需): 项目名称
 - `--description` (string, 可选): 任务描述
-- `--priority` (int, 可选): 优先级 1-4（1=Critical/2=High/3=Medium/4=Low），默认 3
+- `--priority` (int, 可选): 优先级 0-99（数字越大优先级越高），默认 50
 - `--assignee` (string, 可选): 负责人姓名
 - `--parent` (string, 可选): 父任务 UUID（创建子任务时使用）
 

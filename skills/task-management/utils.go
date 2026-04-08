@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -49,16 +48,15 @@ func getCurrentTime() string {
 
 // formatPriority 格式化优先级显示
 func formatPriority(priority int) string {
-	switch priority {
-	case 1:
+	if priority >= 90 {
 		return "Critical"
-	case 2:
+	} else if priority >= 70 {
 		return "High"
-	case 3:
+	} else if priority >= 40 {
 		return "Medium"
-	case 4:
+	} else if priority >= 10 {
 		return "Low"
-	default:
-		return fmt.Sprintf("P%d", priority)
+	} else {
+		return "Minimal"
 	}
 }

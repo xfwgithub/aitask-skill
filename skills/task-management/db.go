@@ -160,7 +160,7 @@ func (d *Database) initTables() error {
 		title TEXT NOT NULL,
 		description TEXT,
 		status TEXT DEFAULT 'pending',
-		priority INTEGER DEFAULT 3,
+		priority INTEGER DEFAULT 50,
 		project TEXT,
 		parent_uuid TEXT,
 		tags TEXT,

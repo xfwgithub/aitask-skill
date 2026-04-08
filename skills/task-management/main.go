@@ -79,7 +79,7 @@ func (s *Skill) CreateTask(input CreateTaskInput) map[string]interface{} {
 		}
 	}
 	if input.Priority == 0 {
-		input.Priority = 3
+		input.Priority = 50
 	}
 	if input.ParentUUID != "" {
 		if s.db != nil {
@@ -632,7 +632,7 @@ func (s *Skill) RunCLI() {
 			break
 		}
 		if p.Priority == 0 {
-			p.Priority = 3 // 默认中等优先级
+			p.Priority = 50 // 默认中等优先级
 		}
 		result = s.CreateTask(p)
 
@@ -870,7 +870,7 @@ func printUsage() {
     --title <标题>          任务标题 (必需)
     --project <项目>        项目名称 (必需)
     --description <描述>    任务描述
-    --priority <1-4>        优先级 (1=Critical, 2=High, 3=Medium, 4=Low)
+    --priority <0-99>       优先级 (0-99，数字越大优先级越高)，默认 50
     --assignee <负责人>     负责人姓名
     --parent <uuid>         父任务UUID (创建子任务)
 
@@ -909,7 +909,7 @@ func printUsage() {
 }
 
 func handleCreateTask(skill *Skill, args []string) {
-	input := CreateTaskInput{Priority: 3}
+	input := CreateTaskInput{Priority: 50}
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
 		case "--title":
@@ -944,8 +944,8 @@ func handleCreateTask(skill *Skill, args []string) {
 			}
 		}
 	}
-	if input.Priority < 1 || input.Priority > 4 {
-		fmt.Println(`{"error": "优先级必须在 1-4 范围内"}`)
+	if input.Priority < 0 || input.Priority > 99 {
+		fmt.Println(`{"error": "优先级必须在 0-99 范围内"}`)
 		return
 	}
 	result := skill.CreateTask(input)

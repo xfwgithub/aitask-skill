@@ -192,7 +192,7 @@ func createTaskAPI(c echo.Context) error {
 	}
 
 	if input.Priority == 0 {
-		input.Priority = 3
+		input.Priority = 50
 	}
 	if input.ParentUUID != "" {
 		if err := database.ValidateParentTask(input.ParentUUID); err != nil {
